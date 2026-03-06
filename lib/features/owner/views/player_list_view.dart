@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/models/models.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../shared/widgets/one_ui_widgets.dart';
+import 'player_details_view.dart';
+
+class PlayerListView extends StatefulWidget {
+  const PlayerListView({super.key});
+
+  @override
+  State<PlayerListView> createState() => _PlayerListViewState();
+}
+
+class _PlayerListViewState extends State<PlayerListView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundWhite,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .where('role', isEqualTo: 'PLAYER')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allPlayers = snapshot.data!.docs.map((doc) {
+            return AppUser.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+          }).toList();
+
+          final filteredPlayers = allPlayers.where((p) {
+            return p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                p.email.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList();
+
+          return Column(
+            children: [
+              OneUISearchBar(
+                controller: _searchController,
+                hintText: 'Search players by name or email...',
+                onChanged: (value) => setState(() => _searchQuery = value),
+              ),
+              Expanded(
+                child: filteredPlayers.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 64,
+                              color: AppTheme.textMuted.withValues(alpha: 0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isEmpty
+                                  ? 'No players found'
+                                  : 'No players matching "$_searchQuery"',
+                              style: const TextStyle(
+                                color: AppTheme.textMuted,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredPlayers.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final player = filteredPlayers[index];
+                          return Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.grey.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: ListTile(
+                                  onTap: () {
+                                    if (player is Player) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PlayerDetailsView(player: player),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  leading: CircleAvatar(
+                                    backgroundColor: AppTheme.primaryIndigo
+                                        .withValues(alpha: 0.1),
+                                    backgroundImage: player.profilePic != null
+                                        ? NetworkImage(player.profilePic!)
+                                        : null,
+                                    child: player.profilePic == null
+                                        ? Text(
+                                            player.name[0].toUpperCase(),
+                                            style: const TextStyle(
+                                              color: AppTheme.primaryIndigo,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                  title: Text(
+                                    player.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(player.email),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: player.isProfileComplete
+                                          ? Colors.green.withValues(alpha: 0.1)
+                                          : Colors.orange.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      player.isProfileComplete
+                                          ? 'Complete'
+                                          : 'Incomplete',
+                                      style: TextStyle(
+                                        color: player.isProfileComplete
+                                            ? Colors.green
+                                            : Colors.orange,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(delay: (index * 50).ms)
+                              .slideX(begin: 0.1, end: 0);
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

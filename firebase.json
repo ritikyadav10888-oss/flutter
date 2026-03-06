@@ -1,0 +1,23 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "force-players-register--app",
+                    "appId": "1:945099815780:android:5a15e55072319df2f75871",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "force-players-register--app",
+                    "configurations": {
+                        "android": "1:945099815780:android:5a15e55072319df2f75871",
+                        "ios": "1:945099815780:ios:c926a00fc0a35716f75871",
+                        "web": "1:945099815780:web:1c1df3f026dfb82df75871"
+                    }
+                }
+            }
+        }
+    }
+}

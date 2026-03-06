@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "945099815780",
+    "project_id": "force-players-register--app",
+    "storage_bucket": "force-players-register--app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945099815780:android:5a15e55072319df2f75871",
+        "android_client_info": {
+          "package_name": "com.example.force_player_register_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "945099815780-e3g37s2ncqb9vnst05mm8vdjsbil3r25.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiz6DHlI8Q0WveCToeOVzZVn5oygJqpi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "945099815780-e3g37s2ncqb9vnst05mm8vdjsbil3r25.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "945099815780-af62f4h038b46t4d17jvgp8esiedljee.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.forcePlayerRegisterApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
