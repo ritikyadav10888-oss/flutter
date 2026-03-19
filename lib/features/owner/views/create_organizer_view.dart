@@ -53,23 +53,22 @@ class _CreateOrganizerViewState extends State<CreateOrganizerView> {
   void initState() {
     super.initState();
     final user = widget.organizer;
-    final org = user is Organizer ? user : null;
 
     nameController = TextEditingController(text: user?.name);
     emailController = TextEditingController(text: user?.email);
     passwordController = TextEditingController();
     phoneController = TextEditingController(text: user?.phoneNumber ?? '+91 ');
-    addressController = TextEditingController(text: org?.address);
+    addressController = TextEditingController(text: user?.address);
     aadharController = TextEditingController(text: user?.aadharNumber);
-    panController = TextEditingController(text: org?.panNumber);
-    bankNameController = TextEditingController(text: org?.bankName);
-    accNoController = TextEditingController(text: org?.accountNumber);
-    ifscController = TextEditingController(text: org?.ifscCode);
-    durationController = TextEditingController(text: org?.accessDuration);
+    panController = TextEditingController(text: user?.panNumber);
+    bankNameController = TextEditingController(text: user?.bankName);
+    accNoController = TextEditingController(text: user?.accountNumber);
+    ifscController = TextEditingController(text: user?.ifscCode);
+    durationController = TextEditingController(text: user?.accessDuration);
 
     existingProfilePicUrl = user?.profilePic;
     existingAadharUrl = user?.aadharPic;
-    existingPanUrl = org?.panPic;
+    existingPanUrl = user?.panPic;
   }
 
   @override
@@ -199,13 +198,27 @@ class _CreateOrganizerViewState extends State<CreateOrganizerView> {
           ifscCode: ifscController.text.trim(),
           accessDuration: durationController.text.trim(),
         );
-        if (success && mounted) Navigator.pop(context);
+        if (success) {
+          if (mounted) Navigator.pop(context);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(viewModel.errorMessage ?? 'Operation failed'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -46,9 +46,9 @@ class TournamentViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateTournament(Tournament tournament) async {
+  Future<bool> updateTournament(String tournamentId, Map<String, dynamic> updates) async {
     try {
-      await _tournamentService.updateTournament(tournament);
+      await _tournamentService.updateTournament(tournamentId, updates);
       return true;
     } catch (e) {
       _errorMessage = e.toString();

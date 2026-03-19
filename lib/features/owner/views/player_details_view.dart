@@ -5,7 +5,7 @@ import '../../../core/models/models.dart';
 import '../../../shared/widgets/one_ui_widgets.dart';
 
 class PlayerDetailsView extends StatelessWidget {
-  final Player player;
+  final AppUser player;
 
   const PlayerDetailsView({super.key, required this.player});
 

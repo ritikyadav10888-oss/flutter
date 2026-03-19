@@ -15,8 +15,7 @@ class OrganizerProfileView extends StatelessWidget {
       return const Scaffold(body: Center(child: Text('User not found')));
     }
 
-    // Cast user to Organizer if it is an organizer to avoid lint errors
-    final organizer = user is Organizer ? user : null;
+    // roles list check is used to define layout/logic if needed here
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
@@ -31,7 +30,7 @@ class OrganizerProfileView extends StatelessWidget {
             _buildInfoSection(context, 'Personal Details', [
               _buildInfoRow('Email', user.email),
               _buildInfoRow('Phone', user.phoneNumber ?? 'Not provided'),
-              _buildInfoRow('Address', organizer?.address ?? 'Not provided'),
+              _buildInfoRow('Address', user.address ?? 'Not provided'),
             ]),
             const SizedBox(height: 24),
             _buildInfoSection(context, 'Identity Documents', [
@@ -45,29 +44,22 @@ class OrganizerProfileView extends StatelessWidget {
                   'View Aadhar Image',
                   user.aadharPic!,
                 ),
-              _buildInfoRow(
-                'PAN Number',
-                organizer?.panNumber ?? 'Not provided',
-              ),
-              if (organizer?.panPic != null)
-                _buildDocumentLink(
-                  context,
-                  'View PAN Image',
-                  organizer!.panPic!,
-                ),
+              _buildInfoRow('PAN Number', user.panNumber ?? 'Not provided'),
+              if (user.panPic != null)
+                _buildDocumentLink(context, 'View PAN Image', user.panPic!),
             ]),
             const SizedBox(height: 24),
             _buildInfoSection(context, 'Bank Information', [
-              _buildInfoRow('Bank Name', organizer?.bankName ?? 'Not provided'),
+              _buildInfoRow('Bank Name', user.bankName ?? 'Not provided'),
               _buildInfoRow(
                 'Account Number',
-                organizer?.accountNumber ?? 'Not provided',
+                user.accountNumber ?? 'Not provided',
               ),
-              _buildInfoRow('IFSC Code', organizer?.ifscCode ?? 'Not provided'),
+              _buildInfoRow('IFSC Code', user.ifscCode ?? 'Not provided'),
             ]),
             const SizedBox(height: 24),
             _buildInfoSection(context, 'Access Details', [
-              _buildInfoRow('Duration', organizer?.accessDuration ?? 'Not set'),
+              _buildInfoRow('Duration', user.accessDuration ?? 'Not set'),
               _buildInfoRow(
                 'Created On',
                 user.createdAt.toString().split(' ').first,

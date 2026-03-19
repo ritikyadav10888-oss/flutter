@@ -1,8 +1,12 @@
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'auth_service.dart';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  static const String baseUrl = 'https://force-sports-backend.onrender.com/api';
+  final AuthService _authService = AuthService();
 
   /// Uploads a generic file byte array and returns the download URL
   Future<String?> uploadFile({
@@ -11,14 +15,31 @@ class StorageService {
     required String fileName,
   }) async {
     try {
-      final ref = _storage.ref().child('$path/$fileName');
+      final token = await _authService.getToken();
+      
+      // Using a multipart request for file upload
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/storage/upload'));
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['path'] = path;
+      
+      var multipartFile = http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: fileName,
+      );
+      
+      request.files.add(multipartFile);
 
-      // Specify content type to ensure it loads properly in browsers
-      final metadata = SettableMetadata(contentType: _getContentType(fileName));
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
 
-      final uploadTask = await ref.putData(bytes, metadata);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      return downloadUrl;
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['url'];
+      } else {
+        debugPrint('Upload failed with status: ${response.statusCode}');
+        return null;
+      }
     } catch (e) {
       debugPrint('Error uploading file: $e');
       return null;
@@ -62,15 +83,5 @@ class StorageService {
       bytes: bytes,
       fileName: fileName,
     );
-  }
-
-  String _getContentType(String fileName) {
-    if (fileName.toLowerCase().endsWith('.png')) return 'image/png';
-    if (fileName.toLowerCase().endsWith('.jpg') ||
-        fileName.toLowerCase().endsWith('.jpeg')) {
-      return 'image/jpeg';
-    }
-    if (fileName.toLowerCase().endsWith('.webp')) return 'image/webp';
-    return 'application/octet-stream'; // Default fallback
   }
 }

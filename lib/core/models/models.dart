@@ -1,11 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// cloud_firestore import removed
 
 enum UserRole { owner, organizer, player }
 
-abstract class AppUser {
+class AppUser {
   final String uid;
   final String email;
-  final UserRole role;
+  final List<UserRole> roles;
+  final UserRole activeRole;
   final String name;
   final DateTime createdAt;
   final bool isProfileComplete;
@@ -14,40 +15,8 @@ abstract class AppUser {
   final String? aadharNumber;
   final String? aadharPic;
 
-  AppUser({
-    required this.uid,
-    required this.email,
-    required this.role,
-    required this.name,
-    required this.createdAt,
-    this.isProfileComplete = false,
-    this.phoneNumber,
-    this.profilePic,
-    this.aadharNumber,
-    this.aadharPic,
-  });
-
-  factory AppUser.fromMap(Map<String, dynamic> map, String id) {
-    final roleStr = (map['role'] as String?)?.toUpperCase() ?? 'PLAYER';
-    final role = UserRole.values.firstWhere(
-      (e) => e.toString().split('.').last.toUpperCase() == roleStr,
-      orElse: () => UserRole.player,
-    );
-
-    switch (role) {
-      case UserRole.player:
-        return Player.fromMap(map, id);
-      case UserRole.organizer:
-        return Organizer.fromMap(map, id);
-      case UserRole.owner:
-        return Owner.fromMap(map, id);
-    }
-  }
-
-  Map<String, dynamic> toMap();
-}
-
-class Player extends AppUser {
+  // Role-specific fields consolidated
+  // Player fields
   final DateTime? dateOfBirth;
   final String? gender;
   final String? emergencyContactNumber;
@@ -56,17 +25,28 @@ class Player extends AppUser {
   final String? playingPosition;
   final String? bloodGroup;
 
-  Player({
-    required super.uid,
-    required super.email,
-    required super.role,
-    required super.name,
-    required super.createdAt,
-    super.isProfileComplete,
-    super.phoneNumber,
-    super.profilePic,
-    super.aadharNumber,
-    super.aadharPic,
+  // Organizer fields
+  final String? ownerId;
+  final String? address;
+  final String? panNumber;
+  final String? panPic;
+  final String? bankName;
+  final String? accountNumber;
+  final String? ifscCode;
+  final String? accessDuration;
+
+  AppUser({
+    required this.uid,
+    required this.email,
+    required this.roles,
+    required this.activeRole,
+    required this.name,
+    required this.createdAt,
+    this.isProfileComplete = false,
+    this.phoneNumber,
+    this.profilePic,
+    this.aadharNumber,
+    this.aadharPic,
     this.dateOfBirth,
     this.gender,
     this.emergencyContactNumber,
@@ -74,6 +54,14 @@ class Player extends AppUser {
     this.healthIssueDetails,
     this.playingPosition,
     this.bloodGroup,
+    this.ownerId,
+    this.address,
+    this.panNumber,
+    this.panPic,
+    this.bankName,
+    this.accountNumber,
+    this.ifscCode,
+    this.accessDuration,
   });
 
   int? get age {
@@ -87,7 +75,37 @@ class Player extends AppUser {
     return calculatedAge;
   }
 
-  factory Player.fromMap(Map<String, dynamic> map, String id) {
+  factory AppUser.fromMap(Map<String, dynamic> map, String id) {
+    // Parse roles
+    final rolesList =
+        (map['roles'] as List<dynamic>?)
+            ?.map(
+              (r) => UserRole.values.firstWhere(
+                (e) => e.name.toUpperCase() == r.toString().toUpperCase(),
+                orElse: () => UserRole.player,
+              ),
+            )
+            .toList() ??
+        [];
+
+    // Fallback for legacy 'role' field
+    if (rolesList.isEmpty && map['role'] != null) {
+      final legacyRole = UserRole.values.firstWhere(
+        (e) => e.name.toUpperCase() == map['role'].toString().toUpperCase(),
+        orElse: () => UserRole.player,
+      );
+      rolesList.add(legacyRole);
+    }
+
+    if (rolesList.isEmpty) rolesList.add(UserRole.player);
+
+    // Active Role
+    final activeRoleStr = (map['activeRole'] as String?)?.toLowerCase();
+    final activeRole = UserRole.values.firstWhere(
+      (e) => e.name == activeRoleStr,
+      orElse: () => rolesList.first,
+    );
+
     DateTime? dob;
     if (map['dateOfBirth'] != null) {
       if (map['dateOfBirth'] is Timestamp) {
@@ -97,10 +115,11 @@ class Player extends AppUser {
       }
     }
 
-    return Player(
+    return AppUser(
       uid: id,
       email: map['email'] ?? '',
-      role: UserRole.player,
+      roles: rolesList,
+      activeRole: activeRole,
       name: map['name'] ?? '',
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] is Timestamp
@@ -119,14 +138,22 @@ class Player extends AppUser {
       healthIssueDetails: map['healthIssueDetails'],
       playingPosition: map['playingPosition'],
       bloodGroup: map['bloodGroup'],
+      ownerId: map['ownerId'],
+      address: map['address'],
+      panNumber: map['panNumber'],
+      panPic: map['panPic'],
+      bankName: map['bankName'],
+      accountNumber: map['accountNumber'],
+      ifscCode: map['ifscCode'],
+      accessDuration: map['accessDuration'],
     );
   }
 
-  @override
   Map<String, dynamic> toMap() {
     return {
       'email': email,
-      'role': 'PLAYER',
+      'roles': roles.map((r) => r.name.toUpperCase()).toList(),
+      'activeRole': activeRole.name,
       'name': name,
       'createdAt': Timestamp.fromDate(createdAt),
       'isProfileComplete': isProfileComplete,
@@ -141,78 +168,6 @@ class Player extends AppUser {
       'healthIssueDetails': healthIssueDetails,
       'playingPosition': playingPosition,
       'bloodGroup': bloodGroup,
-    };
-  }
-}
-
-class Organizer extends AppUser {
-  final String? ownerId;
-  final String? address;
-  final String? panNumber;
-  final String? panPic;
-  final String? bankName;
-  final String? accountNumber;
-  final String? ifscCode;
-  final String? accessDuration;
-
-  Organizer({
-    required super.uid,
-    required super.email,
-    required super.role,
-    required super.name,
-    required super.createdAt,
-    super.isProfileComplete,
-    super.phoneNumber,
-    super.profilePic,
-    super.aadharNumber,
-    super.aadharPic,
-    this.ownerId,
-    this.address,
-    this.panNumber,
-    this.panPic,
-    this.bankName,
-    this.accountNumber,
-    this.ifscCode,
-    this.accessDuration,
-  });
-
-  factory Organizer.fromMap(Map<String, dynamic> map, String id) {
-    return Organizer(
-      uid: id,
-      email: map['email'] ?? '',
-      role: UserRole.organizer,
-      name: map['name'] ?? '',
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.now(),
-      isProfileComplete: map['isProfileComplete'] ?? false,
-      phoneNumber: map['phoneNumber'],
-      profilePic: map['profilePic'],
-      aadharNumber: map['aadharNumber'],
-      aadharPic: map['aadharPic'],
-      ownerId: map['ownerId'],
-      address: map['address'],
-      panNumber: map['panNumber'],
-      panPic: map['panPic'],
-      bankName: map['bankName'],
-      accountNumber: map['accountNumber'],
-      ifscCode: map['ifscCode'],
-      accessDuration: map['accessDuration'],
-    );
-  }
-
-  @override
-  Map<String, dynamic> toMap() {
-    return {
-      'email': email,
-      'role': 'ORGANIZER',
-      'name': name,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'isProfileComplete': isProfileComplete,
-      'phoneNumber': phoneNumber,
-      'profilePic': profilePic,
-      'aadharNumber': aadharNumber,
-      'aadharPic': aadharPic,
       'ownerId': ownerId,
       'address': address,
       'panNumber': panNumber,
@@ -223,85 +178,94 @@ class Organizer extends AppUser {
       'accessDuration': accessDuration,
     };
   }
-}
 
-class Owner extends AppUser {
-  final String? panNumber;
-  final String? panPic;
-
-  Owner({
-    required super.uid,
-    required super.email,
-    required super.role,
-    required super.name,
-    required super.createdAt,
-    super.isProfileComplete,
-    super.phoneNumber,
-    super.profilePic,
-    super.aadharNumber,
-    super.aadharPic,
-    this.panNumber,
-    this.panPic,
-  });
-
-  factory Owner.fromMap(Map<String, dynamic> map, String id) {
-    return Owner(
-      uid: id,
-      email: map['email'] ?? '',
-      role: UserRole.owner,
-      name: map['name'] ?? '',
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.now(),
-      isProfileComplete: map['isProfileComplete'] ?? false,
-      phoneNumber: map['phoneNumber'],
-      profilePic: map['profilePic'],
-      aadharNumber: map['aadharNumber'],
-      aadharPic: map['aadharPic'],
-      panNumber: map['panNumber'],
-      panPic: map['panPic'],
+  AppUser copyWith({UserRole? activeRole, List<UserRole>? roles}) {
+    return AppUser(
+      uid: uid,
+      email: email,
+      roles: roles ?? this.roles,
+      activeRole: activeRole ?? this.activeRole,
+      name: name,
+      createdAt: createdAt,
+      isProfileComplete: isProfileComplete,
+      phoneNumber: phoneNumber,
+      profilePic: profilePic,
+      aadharNumber: aadharNumber,
+      aadharPic: aadharPic,
+      dateOfBirth: dateOfBirth,
+      gender: gender,
+      emergencyContactNumber: emergencyContactNumber,
+      hasHealthIssues: hasHealthIssues,
+      healthIssueDetails: healthIssueDetails,
+      playingPosition: playingPosition,
+      bloodGroup: bloodGroup,
+      ownerId: ownerId,
+      address: address,
+      panNumber: panNumber,
+      panPic: panPic,
+      bankName: bankName,
+      accountNumber: accountNumber,
+      ifscCode: ifscCode,
+      accessDuration: accessDuration,
     );
   }
-
-  @override
-  Map<String, dynamic> toMap() {
-    return {
-      'email': email,
-      'role': 'OWNER',
-      'name': name,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'isProfileComplete': isProfileComplete,
-      'phoneNumber': phoneNumber,
-      'profilePic': profilePic,
-      'aadharNumber': aadharNumber,
-      'aadharPic': aadharPic,
-      'panNumber': panNumber,
-      'panPic': panPic,
-    };
-  }
 }
+
+enum TournamentType { normal, teamBased, auctionBased }
+
+enum EntryFormat { solo, duo, team, auctionPoolSolo }
 
 class Tournament {
   final String id;
   final String name;
   final String description;
-  final DateTime date;
+  final String sportType;
+  final TournamentType type;
+  final EntryFormat entryFormat;
+  final double entryFee;
+  final double prizePool;
+  final List<String> rules;
+  final String terms;
+  final DateTime date; // Keep for backward compatibility or as Start Date
+  final DateTime? endDate;
+  final DateTime? registrationDeadline;
+  final DateTime? organizerAccessExpiry;
   final String location;
   final String bannerUrl;
   final String organizerId;
   final String createdBy; // Owner UID
   final String status; // OPEN, CLOSED, CANCELLED
+  final bool enableScoring;
+  final int? playersPerTeam;
+  final int? maxTeams;
+  final int? maxParticipants;
+  final bool allowTeamOverflow;
 
   Tournament({
     required this.id,
     required this.name,
     required this.description,
+    required this.sportType,
+    required this.type,
+    required this.entryFormat,
+    required this.entryFee,
+    required this.prizePool,
+    required this.rules,
+    required this.terms,
     required this.date,
+    this.endDate,
+    this.registrationDeadline,
+    this.organizerAccessExpiry,
     required this.location,
     required this.bannerUrl,
     required this.organizerId,
     required this.createdBy,
     required this.status,
+    this.enableScoring = false,
+    this.playersPerTeam,
+    this.maxTeams,
+    this.maxParticipants,
+    this.allowTeamOverflow = false,
   });
 
   factory Tournament.fromMap(Map<String, dynamic> map, String id) {
@@ -309,14 +273,41 @@ class Tournament {
       id: id,
       name: map['name'] ?? '',
       description: map['description'] ?? '',
+      sportType: map['sportType'] ?? 'Other',
+      type: TournamentType.values.firstWhere(
+        (e) => e.name == (map['type'] ?? 'normal'),
+        orElse: () => TournamentType.normal,
+      ),
+      entryFormat: EntryFormat.values.firstWhere(
+        (e) => e.name == (map['entryFormat'] ?? 'solo'),
+        orElse: () => EntryFormat.solo,
+      ),
+      entryFee: (map['entryFee'] ?? 0.0).toDouble(),
+      prizePool: (map['prizePool'] ?? 0.0).toDouble(),
+      rules: List<String>.from(map['rules'] ?? []),
+      terms: map['terms'] ?? '',
       date: map['date'] != null
           ? (map['date'] as Timestamp).toDate()
           : DateTime.now(),
+      endDate: map['endDate'] != null
+          ? (map['endDate'] as Timestamp).toDate()
+          : null,
+      registrationDeadline: map['registrationDeadline'] != null
+          ? (map['registrationDeadline'] as Timestamp).toDate()
+          : null,
+      organizerAccessExpiry: map['organizerAccessExpiry'] != null
+          ? (map['organizerAccessExpiry'] as Timestamp).toDate()
+          : null,
       location: map['location'] ?? '',
       bannerUrl: map['bannerUrl'] ?? '',
       organizerId: map['organizerId'] ?? '',
       createdBy: map['createdBy'] ?? '',
       status: map['status'] ?? 'OPEN',
+      enableScoring: map['enableScoring'] ?? false,
+      playersPerTeam: map['playersPerTeam'],
+      maxTeams: map['maxTeams'],
+      maxParticipants: map['maxParticipants'],
+      allowTeamOverflow: map['allowTeamOverflow'] ?? false,
     );
   }
 
@@ -324,12 +315,29 @@ class Tournament {
     return {
       'name': name,
       'description': description,
+      'sportType': sportType,
+      'type': type.name,
+      'entryFormat': entryFormat.name,
+      'entryFee': entryFee,
+      'prizePool': prizePool,
+      'rules': rules,
+      'terms': terms,
       'date': Timestamp.fromDate(date),
+      if (endDate != null) 'endDate': Timestamp.fromDate(endDate!),
+      if (registrationDeadline != null)
+        'registrationDeadline': Timestamp.fromDate(registrationDeadline!),
+      if (organizerAccessExpiry != null)
+        'organizerAccessExpiry': Timestamp.fromDate(organizerAccessExpiry!),
       'location': location,
       'bannerUrl': bannerUrl,
       'organizerId': organizerId,
       'createdBy': createdBy,
       'status': status,
+      'enableScoring': enableScoring,
+      if (playersPerTeam != null) 'playersPerTeam': playersPerTeam,
+      if (maxTeams != null) 'maxTeams': maxTeams,
+      if (maxParticipants != null) 'maxParticipants': maxParticipants,
+      'allowTeamOverflow': allowTeamOverflow,
     };
   }
 }

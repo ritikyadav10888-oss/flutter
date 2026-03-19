@@ -17,253 +17,388 @@ class _RegisterViewState extends State<RegisterView> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
+      backgroundColor: Colors.white,
       body: OneUIResponsivePadding(
-        child: Stack(
-          children: [
-            Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 80,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo & Header
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.primaryIndigo.withValues(
+                              alpha: 0.5,
+                            ),
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          backgroundImage: const AssetImage(
+                            'assets/images/logo.png',
+                          ),
+                        ),
+                      ).animate().fadeIn().scale(),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'FORCE SPORTS',
+                        style: TextStyle(
+                          color: Color(0xFF5C59BB),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
+                          fontSize: 26,
+                        ),
+                      ).animate().fadeIn(delay: 200.ms),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Create Account',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textDark,
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fadeIn(delay: 300.ms),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Join the professional sports network.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fadeIn(delay: 400.ms),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Logo & Header
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryIndigo.withValues(
-                                alpha: 0.05,
+
+                const SizedBox(height: 40),
+
+                // Input Fields
+                _buildFieldLabel('Full Name'),
+                const SizedBox(height: 10),
+                _buildTextField(
+                  controller: _nameController,
+                  hint: 'John Doe',
+                  icon: Icons.person_outline_rounded,
+                ).animate().fadeIn(delay: 500.ms),
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('E-Mail'),
+                const SizedBox(height: 10),
+                _buildTextField(
+                  controller: _emailController,
+                  hint: 'name@example.com',
+                  icon: Icons.mail_outline_rounded,
+                ).animate().fadeIn(delay: 600.ms),
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('Password'),
+                const SizedBox(height: 10),
+                _buildTextField(
+                  controller: _passwordController,
+                  hint: '••••••••',
+                  icon: Icons.lock_outline_rounded,
+                  isPassword: true,
+                  isVisible: _isPasswordVisible,
+                  onToggleVisibility: () =>
+                      setState(() => _isPasswordVisible = !_isPasswordVisible),
+                ).animate().fadeIn(delay: 700.ms),
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('Confirm Password'),
+                const SizedBox(height: 10),
+                _buildTextField(
+                  controller: _confirmPasswordController,
+                  hint: '••••••••',
+                  icon: Icons.lock_outline_rounded,
+                  isPassword: true,
+                  isVisible: _isConfirmPasswordVisible,
+                  onToggleVisibility: () => setState(
+                    () =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
+                  ),
+                  showCheckmark:
+                      _confirmPasswordController.text.isNotEmpty &&
+                      _confirmPasswordController.text ==
+                          _passwordController.text,
+                ).animate().fadeIn(delay: 800.ms),
+
+                const SizedBox(height: 40),
+
+                // Register Button
+                ElevatedButton(
+                  onPressed: viewModel.isLoading
+                      ? null
+                      : () async {
+                          final name = _nameController.text.trim();
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+                          final confirmPassword = _confirmPasswordController
+                              .text
+                              .trim();
+
+                          if (name.isEmpty ||
+                              email.isEmpty ||
+                              password.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please fill in all fields'),
+                                behavior: SnackBarBehavior.floating,
                               ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              height: 60,
-                            ),
-                          ).animate().fadeIn().scale(),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'FORCE SPORTS',
+                            );
+                            return;
+                          }
+
+                          if (password != confirmPassword) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Passwords do not match'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final success = await viewModel.registerPlayer(
+                            email: email,
+                            password: password,
+                            name: name,
+                          );
+
+                          if (!mounted) return;
+
+                          if (success) {
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  viewModel.errorMessage ??
+                                      'Registration failed',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F172A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.black.withValues(alpha: 0.3),
+                  ),
+                  child: viewModel.isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'CREATE ACCOUNT',
+                          style: TextStyle(
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                ).animate().fadeIn(delay: 900.ms).scale(),
+
+                const SizedBox(height: 32),
+
+                Row(
+                  children: [
+                    const Expanded(child: Divider(thickness: 1.2)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'OR SIGN UP WITH',
+                        style: TextStyle(
+                          color: AppTheme.textMuted.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider(thickness: 1.2)),
+                  ],
+                ).animate().fadeIn(delay: 1000.ms),
+
+                const SizedBox(height: 32),
+
+                // Google Button
+                OutlinedButton(
+                  onPressed: () => viewModel.signInWithGoogle(),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    side: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.textDark,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.google,
+                        color: Color(0xFF4285F4),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 1100.ms),
+
+                const SizedBox(height: 48),
+
+                // Login Link
+                Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: RichText(
+                      text: const TextSpan(
+                        text: "Already have an account? ",
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign In',
                             style: TextStyle(
-                              color: AppTheme.primaryIndigo,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
-                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
                             ),
-                          ).animate().fadeIn(delay: 200.ms),
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
-
-                    // Greeting
-                    Text(
-                          'Create Account',
-                          style: Theme.of(context).textTheme.displayLarge
-                              ?.copyWith(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textDark,
-                              ),
-                          textAlign: TextAlign.center,
-                        )
-                        .animate()
-                        .fadeIn(delay: 400.ms)
-                        .slideY(begin: 0.2, end: 0),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Join the professional sports network.',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
-                      textAlign: TextAlign.center,
-                    ).animate().fadeIn(delay: 500.ms),
-
-                    const SizedBox(height: 40),
-
-                    // Input Fields
-                    _buildTextField(
-                      controller: _nameController,
-                      label: 'Full Name',
-                      icon: Icons.person_outline_rounded,
-                    ).animate().fadeIn(delay: 600.ms),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'E-Mail',
-                      icon: Icons.alternate_email_rounded,
-                    ).animate().fadeIn(delay: 700.ms),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _passwordController,
-                      label: 'Password',
-                      icon: Icons.lock_outline_rounded,
-                      isPassword: true,
-                    ).animate().fadeIn(delay: 800.ms),
-
-                    const SizedBox(height: 40),
-
-                    // Register Button
-                    ElevatedButton(
-                      onPressed: viewModel.isLoading
-                          ? null
-                          : () async {
-                              final success = await viewModel.registerPlayer(
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text.trim(),
-                                name: _nameController.text.trim(),
-                              );
-                              if (success && mounted) {
-                                Navigator.pop(context);
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        backgroundColor: AppTheme.textDark,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: viewModel.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'CREATE ACCOUNT',
-                              style: TextStyle(
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ).animate().fadeIn(delay: 900.ms).scale(),
-
-                    const SizedBox(height: 24),
-
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR SIGN UP WITH',
-                            style: TextStyle(
-                              color: AppTheme.textMuted.withValues(alpha: 0.5),
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ).animate().fadeIn(delay: 1000.ms),
-
-                    const SizedBox(height: 24),
-
-                    // Google Button
-                    OutlinedButton.icon(
-                      onPressed: viewModel.isLoading
-                          ? null
-                          : () => viewModel.signInWithGoogle(),
-                      icon: const FaIcon(
-                        FontAwesomeIcons.google,
-                        color: Color(0xFF4285F4),
-                        size: 18,
-                      ),
-                      label: const Text('Google Account'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        side: BorderSide(
-                          color: AppTheme.primaryIndigo.withValues(alpha: 0.1),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 1100.ms),
-
-                    const SizedBox(height: 48),
-
-                    // Login Link
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Already have an account? ",
-                            style: const TextStyle(color: AppTheme.textMuted),
-                            children: [
-                              TextSpan(
-                                text: 'Sign in',
-                                style: TextStyle(
-                                  color: AppTheme.primaryIndigo,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 1200.ms),
-                  ],
-                ),
-              ),
+                  ),
+                ).animate().fadeIn(delay: 1200.ms),
+              ],
             ),
-
-            // Back Button
-            Positioned(
-              top: 40,
-              left: 20,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: AppTheme.textDark,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+        color: AppTheme.textDark,
+        letterSpacing: 0.5,
       ),
     );
   }
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
+    required String hint,
     required IconData icon,
     bool isPassword = false,
+    bool isVisible = false,
+    VoidCallback? onToggleVisibility,
+    bool showCheckmark = false,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: isPassword && !_isPasswordVisible,
-      style: const TextStyle(fontWeight: FontWeight.w600),
+      obscureText: isPassword && !isVisible,
+      onChanged: (_) {
+        if (isPassword) setState(() {});
+      },
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: AppTheme.textMuted.withValues(alpha: 0.5),
+          fontWeight: FontWeight.w400,
+        ),
+        prefixIcon: Icon(icon, size: 22, color: AppTheme.textMuted),
         suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                  size: 20,
-                ),
-                onPressed: () =>
-                    setState(() => _isPasswordVisible = !_isPasswordVisible),
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (showCheckmark)
+                    const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF4CAF50),
+                      size: 20,
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      isVisible ? Icons.visibility_off : Icons.visibility,
+                      size: 20,
+                      color: AppTheme.textMuted,
+                    ),
+                    onPressed: onToggleVisibility,
+                  ),
+                ],
               )
             : null,
+        filled: true,
+        fillColor: const Color(0xFFF1F5F9),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: AppTheme.secondarySky,
+            width: 1.5,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -273,6 +408,7 @@ class _RegisterViewState extends State<RegisterView> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 }

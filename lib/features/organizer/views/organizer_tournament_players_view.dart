@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../core/models/models.dart';
 import '../../../core/theme/app_theme.dart';
 
 class OrganizerTournamentPlayersView extends StatelessWidget {
-  final Map<String, dynamic> tournament;
+  final Tournament tournament;
 
   const OrganizerTournamentPlayersView({super.key, required this.tournament});
 
   @override
   Widget build(BuildContext context) {
-    // Generate some mock players based on the tournament's player count
-    final int playerCount = tournament['playersCount'] ?? 10;
+    // Generate some mock players based on a fixed number or tournament detail
+    final int playerCount = 24; // Mock value
 
     final List<Map<String, dynamic>> _mockPlayers = List.generate(
       playerCount,
@@ -31,7 +32,7 @@ class OrganizerTournamentPlayersView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
       appBar: AppBar(
-        title: Text('${tournament['name']} Players'),
+        title: Text('${tournament.name} Players'),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textDark,
         elevation: 0,
@@ -106,7 +107,7 @@ class OrganizerTournamentPlayersView extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            Icons.sports_soccer,
+                            Icons.military_tech_rounded,
                             size: 12,
                             color: Colors.grey[600],
                           ),
@@ -194,7 +195,11 @@ class OrganizerTournamentPlayersView extends StatelessWidget {
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 16),
-          _buildDetailRow(Icons.sports_soccer, 'Position', player['position']),
+          _buildDetailRow(
+            Icons.military_tech_rounded,
+            'Position',
+            player['position'],
+          ),
           const SizedBox(height: 12),
           _buildDetailRow(
             Icons.calendar_today,

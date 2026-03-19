@@ -17,11 +17,7 @@ class AuthViewModel extends ChangeNotifier {
 
   AuthViewModel() {
     _authService.user.listen((user) {
-      // While a sign-in is actively in progress (_isLoading == true), ignore
-      // null emissions from the stream. These nulls happen because Firebase
-      // Auth fires authStateChanges() BEFORE the Firestore document is written
-      // for new Google/Phone users (race condition). The explicit assignment
-      // inside signInWithGoogle() / signIn() handles the real user value.
+      // The explicit assignment inside signIn methods handles the real user value.
       if (user == null && _isLoading) return;
       _user = user;
       _isInitializing = false;
@@ -41,7 +37,7 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return _user != null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -68,7 +64,7 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return _user != null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -82,91 +78,49 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       _user = await _authService.signInWithGoogle();
-      _isInitializing = false; // ensure the loading splash never gets stuck
+      _isInitializing = false;
       _isLoading = false;
       notifyListeners();
       return _user != null;
     } catch (e) {
-      _errorMessage = e.toString().contains('Exception:')
-          ? e.toString().replaceAll('Exception: ', '')
-          : 'Google sign-in failed. Please try again.';
+      _errorMessage = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  String? _verificationId;
-  String? get verificationId => _verificationId;
-
-  Future<void> sendOTP(String phoneNumber) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      await _authService.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationFailed: (e) {
-          _errorMessage = e.message;
-          _isLoading = false;
-          notifyListeners();
-        },
-        codeSent: (verificationId, forceResendingToken) {
-          _verificationId = verificationId;
-          _isLoading = false;
-          notifyListeners();
-        },
-        codeAutoRetrievalTimeout: (verificationId) {
-          _verificationId = verificationId;
-        },
-      );
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> verifyOTP(String smsCode) async {
-    if (_verificationId == null) {
-      _errorMessage = 'Verification ID not found. Request OTP again.';
-      notifyListeners();
-      return false;
-    }
-
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      _user = await _authService.verifyOTP(_verificationId!, smsCode);
-      _isLoading = false;
-      notifyListeners();
-      return _user != null;
-    } catch (e) {
-      _errorMessage = e.toString().contains('Exception:')
-          ? e.toString().replaceAll('Exception: ', '')
-          : 'Invalid OTP or sign-in failed.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> updateProfile(Map<String, dynamic> profileData) async {
+  Future<bool> updateProfile(Map<String, dynamic> data) async {
     if (_user == null) return false;
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
 
     try {
-      await _authService.updatePlayerProfile(_user!.uid, profileData);
+      await _authService.updateUser(_user!.uid, data);
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = 'Failed to update profile: ${e.toString()}';
+      _errorMessage = _handleAuthError(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> switchRole(UserRole role) async {
+    if (_user == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authService.updateUser(_user!.uid, {'active_role': role.name});
+      _user = _user!.copyWith(activeRole: role);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -174,29 +128,21 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<bool> resetPassword(String email) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _errorMessage = 'Password reset is not yet implemented in the new backend.';
     notifyListeners();
-
-    try {
-      await _authService.sendPasswordResetEmail(email);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().contains('Exception:')
-          ? e.toString().replaceAll('Exception: ', '')
-          : 'Failed to send reset email. Please try again.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+    return false;
   }
 
   Future<void> signOut() async {
     await _authService.signOut();
     _user = null;
     notifyListeners();
+  }
+
+  String _handleAuthError(dynamic e) {
+    return e.toString().contains('Exception:')
+        ? e.toString().replaceAll('Exception: ', '')
+        : 'An error occurred. Please try again.';
   }
 
   void clearError() {

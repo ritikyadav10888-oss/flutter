@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../auth/viewmodels/auth_viewmodel.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/one_ui_widgets.dart';
+import '../../../shared/widgets/aura_widgets.dart';
 import 'organizer_list_view.dart';
 import 'tournament_list_view.dart';
 import 'player_list_view.dart';
@@ -32,10 +32,10 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     ];
 
     return Scaffold(
-      body: OneUIResponsivePadding(
-        child: IndexedStack(index: _selectedIndex, children: _tabs),
-      ),
+      backgroundColor: AppTheme.backgroundAura,
+      body: IndexedStack(index: _selectedIndex, children: _tabs),
       bottomNavigationBar: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) =>
             setState(() => _selectedIndex = index),
@@ -46,13 +46,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.group_work_outlined),
-            selectedIcon: Icon(Icons.group_work),
+            icon: Icon(Icons.assignment_ind_outlined),
+            selectedIcon: Icon(Icons.assignment_ind_rounded),
             label: 'Organizers',
           ),
           NavigationDestination(
-            icon: Icon(Icons.sports_soccer_outlined),
-            selectedIcon: Icon(Icons.sports_soccer),
+            icon: Icon(Icons.emoji_events_outlined),
+            selectedIcon: Icon(Icons.emoji_events_rounded),
             label: 'Tournaments',
           ),
           NavigationDestination(
@@ -71,112 +71,114 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   }
 
   Widget _buildHomeTab(BuildContext context, AuthViewModel authViewModel) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = screenWidth > AppTheme.mobileBreakpoint;
-
     return CustomScrollView(
       slivers: [
-        OneUISliverHeader(
+        AuraHeader(
           title: 'Welcome Back',
           subtitle: authViewModel.user?.name ?? 'Owner',
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => authViewModel.signOut(),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  color: AppTheme.accentCoral,
+                ),
+                onPressed: () => authViewModel.signOut(),
+              ),
             ),
           ],
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(AppTheme.sectionSpacing),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.auraPadding,
+              vertical: AppTheme.sectionGap,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Stats Grid
-                GridView.count(
-                  crossAxisCount: screenWidth > 900
-                      ? 4
-                      : (screenWidth > 600 ? 2 : 2),
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: isWeb ? 1.5 : 1.1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                AuraResponsiveGrid(
+                  mobileCount: 2,
+                  tabletCount: 2,
+                  desktopCount: 4,
                   children: [
-                    _buildStatCard(
-                      context,
-                      'Total Organizers',
-                      '12',
-                      Icons.group_work,
-                      AppTheme.primaryIndigo,
+                    AuraStatsCard(
+                      label: 'Organizers',
+                      value: '12',
+                      icon: Icons.assignment_ind_rounded,
+                      accentColor: AppTheme.primaryIndigo,
                     ),
-                    _buildStatCard(
-                      context,
-                      'Active Tournaments',
-                      '5',
-                      Icons.sports_soccer,
-                      AppTheme.secondaryBlue,
+                    AuraStatsCard(
+                      label: 'Tournaments',
+                      value: '5',
+                      icon: Icons.emoji_events_rounded,
+                      accentColor: AppTheme.secondarySky,
                     ),
-                    _buildStatCard(
-                      context,
-                      'Total Players',
-                      '128',
-                      Icons.people,
-                      Colors.green,
+                    AuraStatsCard(
+                      label: 'Players',
+                      value: '128',
+                      icon: Icons.people_rounded,
+                      accentColor: AppTheme.successGreen,
                     ),
-                    _buildStatCard(
-                      context,
-                      'Total Revenue',
-                      '₹45k',
-                      Icons.payments,
-                      Colors.purple,
+                    AuraStatsCard(
+                      label: 'Revenue',
+                      value: '₹45k',
+                      icon: Icons.payments_rounded,
+                      accentColor: AppTheme.warningAmber,
                     ),
                   ],
-                ).animate().fadeIn(delay: 200.ms).moveY(begin: 20, end: 0),
+                ).animate().fadeIn(delay: 200.ms).moveY(begin: 30, end: 0),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 48),
 
                 Text(
                   'Quick Actions',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ).animate().fadeIn(delay: 400.ms),
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ).animate().fadeIn(delay: 400.ms).moveX(begin: -20, end: 0),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // Quick Actions in a One UI Section
-                OneUISection(
-                  showSeparator: true,
+                // Quick Actions via Aura Tiles
+                Column(
                   children: [
                     _buildActionItem(
                       context,
                       'Manage Organizers',
                       'View and approve organizer accounts',
-                      Icons.group_work,
+                      Icons.assignment_ind_rounded,
                       () => setState(() => _selectedIndex = 1),
                     ),
+                    const SizedBox(height: 12),
                     _buildActionItem(
                       context,
                       'Tournament Schedule',
                       'Check upcoming and live matches',
-                      Icons.emoji_events,
+                      Icons.emoji_events_rounded,
                       () => setState(() => _selectedIndex = 2),
                     ),
+                    const SizedBox(height: 12),
                     _buildActionItem(
                       context,
                       'Player Database',
                       'Search through registered players',
-                      Icons.people,
+                      Icons.people_alt_rounded,
                       () => setState(() => _selectedIndex = 3),
                     ),
+                    const SizedBox(height: 12),
                     _buildActionItem(
                       context,
                       'Financial Reports',
                       'View payouts and revenue history',
-                      Icons.payments,
+                      Icons.account_balance_wallet_rounded,
                       () => setState(() => _selectedIndex = 4),
                     ),
                   ],
-                ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
+                ).animate().fadeIn(delay: 600.ms).moveY(begin: 30, end: 0),
 
                 const SizedBox(height: 40),
               ],
@@ -194,117 +196,35 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     IconData icon,
     VoidCallback onTap,
   ) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryIndigo.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
+    return AuraCard(
+      padding: EdgeInsets.zero,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryIndigo.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: AppTheme.primaryIndigo, size: 24),
         ),
-        child: Icon(icon, color: AppTheme.primaryIndigo, size: 22),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
+        title: Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: AppTheme.textMuted,
-          fontSize: 13,
-          fontWeight: FontWeight.w400,
+        subtitle: Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 13),
         ),
-      ),
-      trailing: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.chevron_right,
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
           size: 16,
           color: AppTheme.textMuted,
         ),
       ),
     );
   }
-
-  Widget _buildStatCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return OneUICard(
-      padding: EdgeInsets.zero,
-      child: Stack(
-        children: [
-          // Background accent
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Icon(icon, size: 100, color: color.withValues(alpha: 0.05)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const Spacer(),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textMuted,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          // Subtle indicator bar at bottom
-          Positioned(
-            bottom: 0,
-            left: 20,
-            right: 20,
-            child: Container(
-              height: 3,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(3),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+} // End of _OwnerDashboardState

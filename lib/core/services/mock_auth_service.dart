@@ -22,7 +22,8 @@ class MockAuthService {
         uid: 'owner_123',
         name: 'Super Owner',
         email: 'admin@force.com',
-        role: UserRole.owner,
+        roles: [UserRole.owner],
+        activeRole: UserRole.owner,
         createdAt: DateTime.now(),
       );
     }
@@ -32,7 +33,8 @@ class MockAuthService {
         uid: 'org_123',
         name: 'Tournament Pro',
         email: 'organizer@force.com',
-        role: UserRole.organizer,
+        roles: [UserRole.organizer],
+        activeRole: UserRole.organizer,
         createdAt: DateTime.now(),
       );
     }
@@ -42,7 +44,8 @@ class MockAuthService {
         uid: 'player_123',
         name: 'Guest Player',
         email: email,
-        role: UserRole.player,
+        roles: [UserRole.player],
+        activeRole: UserRole.player,
         createdAt: DateTime.now(),
       );
     }
@@ -61,7 +64,8 @@ class MockAuthService {
       uid: 'new_player_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       email: email,
-      role: UserRole.player,
+      roles: [UserRole.player],
+      activeRole: UserRole.player,
       createdAt: DateTime.now(),
     );
     _userController.add(_currentUser);

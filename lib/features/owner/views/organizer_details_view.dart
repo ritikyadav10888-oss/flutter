@@ -10,8 +10,6 @@ class OrganizerDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final org = organizer is Organizer ? (organizer as Organizer) : null;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -53,7 +51,7 @@ class OrganizerDetailsView extends StatelessWidget {
                 _buildDetailRow(
                   Icons.location_on_outlined,
                   'Address',
-                  org?.address ?? 'Not provided',
+                  organizer.address ?? 'Not provided',
                   isLong: true,
                 ),
                 _buildDetailRow(
@@ -64,7 +62,7 @@ class OrganizerDetailsView extends StatelessWidget {
                 _buildDetailRow(
                   Icons.badge_outlined,
                   'PAN',
-                  org?.panNumber ?? 'Not provided',
+                  organizer.panNumber ?? 'Not provided',
                 ),
               ],
             ),
@@ -76,17 +74,17 @@ class OrganizerDetailsView extends StatelessWidget {
                 _buildDetailRow(
                   Icons.account_balance_outlined,
                   'Bank Name',
-                  org?.bankName ?? 'Not provided',
+                  organizer.bankName ?? 'Not provided',
                 ),
                 _buildDetailRow(
                   Icons.numbers_outlined,
                   'Account Number',
-                  org?.accountNumber ?? 'Not provided',
+                  organizer.accountNumber ?? 'Not provided',
                 ),
                 _buildDetailRow(
                   Icons.qr_code_outlined,
                   'IFSC Code',
-                  org?.ifscCode ?? 'Not provided',
+                  organizer.ifscCode ?? 'Not provided',
                 ),
               ],
             ),
@@ -98,7 +96,7 @@ class OrganizerDetailsView extends StatelessWidget {
                 _buildDetailRow(
                   Icons.calendar_today_outlined,
                   'Access Duration',
-                  org?.accessDuration ?? 'Not set',
+                  organizer.accessDuration ?? 'Not set',
                 ),
                 _buildDetailRow(
                   Icons.history_outlined,
@@ -108,15 +106,15 @@ class OrganizerDetailsView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            if (organizer.aadharPic != null || org?.panPic != null)
+            if (organizer.aadharPic != null || organizer.panPic != null)
               _buildSectionCard(
                 title: 'Documents',
                 icon: Icons.file_copy_outlined,
                 children: [
                   if (organizer.aadharPic != null)
                     _buildDocumentItem('Aadhar Card', organizer.aadharPic!),
-                  if (org?.panPic != null)
-                    _buildDocumentItem('PAN Card', org!.panPic!),
+                  if (organizer.panPic != null)
+                    _buildDocumentItem('PAN Card', organizer.panPic!),
                 ],
               ),
             const SizedBox(height: 40),

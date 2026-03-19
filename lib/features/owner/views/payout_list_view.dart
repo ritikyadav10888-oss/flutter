@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../auth/viewmodels/auth_viewmodel.dart';
+import '../../../shared/widgets/aura_widgets.dart';
 
 class PayoutListView extends StatelessWidget {
   const PayoutListView({super.key});
@@ -88,52 +89,66 @@ class PayoutListView extends StatelessWidget {
             );
           }
 
-          return Column(
-            children: [
-              _buildSummaryHeader(registrations),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: registrations.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 1),
-                  itemBuilder: (context, index) {
+          return CustomScrollView(
+            slivers: [
+              const AuraHeader(
+                title: 'Payouts',
+                subtitle: 'Financial overview and history',
+              ),
+              SliverToBoxAdapter(child: _buildSummaryHeader(registrations)),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
                     final reg = registrations[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.backgroundWhite,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: AppTheme.softShadow,
                       ),
-                      leading: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          shape: BoxShape.circle,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
-                        child: const Icon(
-                          Icons.arrow_downward,
-                          color: Colors.green,
-                          size: 20,
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_downward,
+                            color: Colors.green,
+                            size: 20,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        reg.playerName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        DateFormat('MMM dd, yyyy').format(reg.registrationDate),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                      trailing: const Text(
-                        '+ ₹500', // Mock fee
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        title: Text(
+                          reg.playerName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          DateFormat(
+                            'MMM dd, yyyy',
+                          ).format(reg.registrationDate),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        trailing: const Text(
+                          '+ ₹500',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ).animate().fadeIn(delay: (index * 30).ms);
-                  },
+                  }, childCount: registrations.length),
                 ),
               ),
             ],
@@ -150,7 +165,7 @@ class PayoutListView extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryIndigo, AppTheme.secondaryBlue],
+          colors: [AppTheme.primaryIndigo, AppTheme.accentTeal],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

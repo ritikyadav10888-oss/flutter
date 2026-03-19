@@ -1,193 +1,239 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
+import '../../../core/models/models.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/aura_widgets.dart';
+import '../../../shared/widgets/one_ui_widgets.dart';
 import 'organizer_tournament_players_view.dart';
 
 class OrganizerTournamentDetailView extends StatelessWidget {
-  final Map<String, dynamic> tournament;
+  final Tournament tournament;
 
   const OrganizerTournamentDetailView({super.key, required this.tournament});
 
   @override
   Widget build(BuildContext context) {
-    final date = tournament['date'] as DateTime;
-    final dateStr = '${date.month}/${date.day}/${date.year}';
-    final isClosed = tournament['status'] == 'CLOSED';
+    final date = tournament.date;
+    final dateStr = DateFormat('dd MMM yyyy').format(date);
+
+    String formatDetail = '';
+    if (tournament.type == TournamentType.teamBased) {
+      formatDetail =
+          '${tournament.maxTeams ?? 0} Teams · ${tournament.playersPerTeam ?? 0} Players each';
+    } else if (tournament.type == TournamentType.auctionBased) {
+      formatDetail = 'Auction Pool · Solo Entry';
+    } else {
+      formatDetail = tournament.entryFormat.name.toUpperCase();
+    }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
-      appBar: AppBar(
-        title: const Text('Manage Tournament'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textDark,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Banner Placeholder
-            Container(
-              height: 200,
-              color: AppTheme.primaryIndigo.withOpacity(0.1),
-              child: const Center(
-                child: Icon(
-                  Icons.sports_soccer,
-                  size: 64,
+      backgroundColor: AppTheme.backgroundAura,
+      body: CustomScrollView(
+        slivers: [
+          AuraHeader(
+            title: 'Tournament Hub',
+            subtitle: 'Management Dashboard',
+            onBack: () => Navigator.pop(context),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.share_outlined,
                   color: AppTheme.primaryIndigo,
                 ),
               ),
-            ),
-
-            Padding(
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          tournament['name'],
-                          style: Theme.of(
-                            context,
-                          ).textTheme.displayLarge?.copyWith(fontSize: 24),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isClosed
-                              ? Colors.red.withOpacity(0.1)
-                              : Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isClosed
-                                ? Colors.red.withOpacity(0.5)
-                                : Colors.green.withOpacity(0.5),
+                  // Premium Hero Card
+                  AuraCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 160,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryIndigo.withOpacity(0.05),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(AppTheme.radiusLG),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          tournament['status'],
-                          style: TextStyle(
-                            color: isClosed ? Colors.red : Colors.green,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey[200]!),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Row(
+                          child: Stack(
                             children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                color: AppTheme.textMuted,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                dateStr,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: AppTheme.textMuted,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  tournament['location'],
-                                  style: const TextStyle(fontSize: 16),
+                              Center(
+                                child: Icon(
+                                  _getSportIcon(tournament.sportType),
+                                  size: 80,
+                                  color: AppTheme.primaryIndigo.withOpacity(
+                                    0.2,
+                                  ),
                                 ),
                               ),
+                              Positioned(
+                                top: 16,
+                                right: 16,
+                                child: _buildStatusChip(tournament.status),
+                              ),
                             ],
                           ),
-                          const Divider(height: 24),
-                          Row(
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.people,
-                                color: AppTheme.textMuted,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
                               Text(
-                                '${tournament['playersCount']} Registered Players',
+                                tournament.name.toUpperCase(),
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textDark,
+                                  letterSpacing: 0.5,
                                 ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${tournament.sportType} · $formatDetail',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryIndigo.withOpacity(
+                                    0.7,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildDetailRow(
+                                Icons.calendar_today_outlined,
+                                'Schedule',
+                                '$dateStr · ${DateFormat('hh:mm a').format(date)}',
+                              ),
+                              const Divider(height: 24, thickness: 0.5),
+                              _buildDetailRow(
+                                Icons.place_outlined,
+                                'Venue',
+                                tournament.location,
+                              ),
+                              const Divider(height: 24, thickness: 0.5),
+                              _buildDetailRow(
+                                Icons.groups_outlined,
+                                'Format Info',
+                                formatDetail,
+                                isBold: true,
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ).animate().fadeIn().slideY(begin: 0.1, end: 0),
 
                   const SizedBox(height: 32),
-                  Text(
-                    'Quick Actions',
-                    style: Theme.of(context).textTheme.displayMedium,
-                  ),
+                  const OneUISection(title: 'QUICK MANAGEMENT', children: []),
                   const SizedBox(height: 16),
 
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.1,
                     children: [
                       _buildActionCard(
                         context,
-                        'View Players',
-                        Icons.group,
+                        'Players',
+                        Icons.group_outlined,
                         AppTheme.primaryIndigo,
                       ),
                       _buildActionCard(
                         context,
-                        'Edit Details',
-                        Icons.edit,
-                        Colors.blue,
+                        'Fixtures',
+                        Icons.account_tree_outlined,
+                        AppTheme.successGreen,
                       ),
                       _buildActionCard(
                         context,
-                        'Match Schedule',
-                        Icons.sports,
-                        Colors.orange,
+                        'Payments',
+                        Icons.payments_outlined,
+                        AppTheme.warningAmber,
                       ),
                       _buildActionCard(
                         context,
-                        'Send Announcement',
-                        Icons.campaign,
-                        Colors.green,
+                        'Settings',
+                        Icons.settings_outlined,
+                        AppTheme.accentCoral,
                       ),
                     ],
-                  ),
+                  ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9)),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isBold = false,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.textMuted),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textMuted,
+                letterSpacing: 1,
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+                color: AppTheme.textDark,
+              ),
+            ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    final isClosed = status.toUpperCase() == 'CLOSED';
+    final color = isClosed ? AppTheme.accentCoral : AppTheme.successGreen;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -199,35 +245,27 @@ class OrganizerTournamentDetailView extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    return InkWell(
-      onTap: () {
-        if (title == 'View Players') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  OrganizerTournamentPlayersView(tournament: tournament),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title feature coming soon!')),
-          );
-        }
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600
-            ? 200
-            : (MediaQuery.of(context).size.width - 64) / 2,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
+    return AuraCard(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () {
+          if (title == 'Players') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    OrganizerTournamentPlayersView(tournament: tournament),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title feature coming soon!')),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
@@ -235,17 +273,35 @@ class OrganizerTournamentDetailView extends StatelessWidget {
                 color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 12),
             Text(
               title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: AppTheme.textDark,
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  IconData _getSportIcon(String sport) {
+    final s = sport.toLowerCase();
+    if (s.contains('cricket')) return Icons.sports_cricket;
+    if (s.contains('football')) return Icons.sports_soccer;
+    if (s.contains('basketball')) return Icons.sports_basketball;
+    if (s.contains('tennis')) return Icons.sports_tennis;
+    if (s.contains('badminton')) return Icons.sports;
+    if (s.contains('volleyball')) return Icons.sports_volleyball;
+    if (s.contains('kabaddi')) return Icons.sports_kabaddi;
+    if (s.contains('hockey')) return Icons.sports_hockey;
+    if (s.contains('chess')) return Icons.grid_view;
+    if (s.contains('boxing')) return Icons.sports_mma;
+    return Icons.emoji_events_outlined;
   }
 }

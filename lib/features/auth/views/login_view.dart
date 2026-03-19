@@ -24,13 +24,13 @@ class _LoginViewState extends State<LoginView> {
     final viewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
+      backgroundColor: Colors.white,
       body: OneUIResponsivePadding(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Logo & Header
@@ -38,69 +38,85 @@ class _LoginViewState extends State<LoginView> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryIndigo.withValues(alpha: 0.05),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.primaryIndigo.withValues(
+                              alpha: 0.5,
+                            ),
+                            width: 2,
+                          ),
                         ),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 80,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          backgroundImage: const AssetImage(
+                            'assets/images/logo.png',
+                          ),
                         ),
                       ).animate().fadeIn().scale(),
                       const SizedBox(height: 24),
                       const Text(
                         'FORCE SPORTS',
                         style: TextStyle(
-                          color: AppTheme.primaryIndigo,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 4,
-                          fontSize: 24,
+                          color: Color(0xFF5C59BB),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
+                          fontSize: 26,
                         ),
                       ).animate().fadeIn(delay: 200.ms),
                       const Text(
                         'PLAYER REGISTER APP',
                         style: TextStyle(
                           color: AppTheme.textMuted,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 2,
-                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.5,
+                          fontSize: 13,
                         ),
                       ).animate().fadeIn(delay: 300.ms),
                     ],
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 48),
 
                 // Greeting
                 Text(
                   'Welcome Back',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.textDark,
                   ),
                   textAlign: TextAlign.center,
-                ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
+                ).animate().fadeIn(delay: 400.ms),
                 const SizedBox(height: 8),
                 const Text(
                   'Sign in to continue your sports journey',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 15),
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(delay: 500.ms),
 
-                const SizedBox(height: 48),
+                const SizedBox(height: 40),
 
                 // Input Fields
+                _buildFieldLabel('E-Mail'),
+                const SizedBox(height: 10),
                 _buildTextField(
                   controller: _emailController,
-                  label: 'E-Mail',
-                  icon: Icons.alternate_email_rounded,
+                  hint: 'name@example.com',
+                  icon: Icons.mail_outline_rounded,
                 ).animate().fadeIn(delay: 600.ms),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                _buildFieldLabel('Password'),
+                const SizedBox(height: 10),
                 _buildTextField(
                   controller: _passwordController,
-                  label: 'Password',
+                  hint: '••••••••',
                   icon: Icons.lock_outline_rounded,
                   isPassword: true,
                 ).animate().fadeIn(delay: 700.ms),
@@ -113,8 +129,9 @@ class _LoginViewState extends State<LoginView> {
                     child: const Text(
                       'Forgot Password?',
                       style: TextStyle(
-                        color: AppTheme.primaryIndigo,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF56A8B1), // Teal/Cyan from design
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
                       ),
                     ),
                   ),
@@ -133,9 +150,10 @@ class _LoginViewState extends State<LoginView> {
                           );
                           if (!success && mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Login failed. Please check your credentials.',
+                                  viewModel.errorMessage ??
+                                      'Login failed. Please check your credentials.',
                                 ),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -143,16 +161,21 @@ class _LoginViewState extends State<LoginView> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    backgroundColor: AppTheme.textDark,
+                    backgroundColor: const Color(0xFF0F172A),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.black.withValues(alpha: 0.3),
                   ),
                   child: viewModel.isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 24,
+                          width: 24,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: 2.5,
                             color: Colors.white,
                           ),
                         )
@@ -160,50 +183,65 @@ class _LoginViewState extends State<LoginView> {
                           'SIGN IN',
                           style: TextStyle(
                             letterSpacing: 2,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
                           ),
                         ),
                 ).animate().fadeIn(delay: 900.ms).scale(),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 Row(
                   children: [
-                    const Expanded(child: Divider()),
+                    const Expanded(child: Divider(thickness: 1.2)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         'OR CONTINUE WITH',
                         style: TextStyle(
-                          color: AppTheme.textMuted.withValues(alpha: 0.5),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textMuted.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                         ),
                       ),
                     ),
-                    const Expanded(child: Divider()),
+                    const Expanded(child: Divider(thickness: 1.2)),
                   ],
                 ).animate().fadeIn(delay: 1000.ms),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Google Button
-                OutlinedButton.icon(
-                  onPressed: viewModel.isLoading
-                      ? null
-                      : () => viewModel.signInWithGoogle(),
-                  icon: const FaIcon(
-                    FontAwesomeIcons.google,
-                    color: Color(0xFF4285F4),
-                    size: 18,
-                  ),
-                  label: const Text('Google Account'),
+                // Social Buttons
+                OutlinedButton(
+                  onPressed: () => viewModel.signInWithGoogle(),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    side: BorderSide(
-                      color: AppTheme.primaryIndigo.withValues(alpha: 0.1),
+                    side: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.textDark,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.google,
+                        color: Color(0xFF4285F4),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ).animate().fadeIn(delay: 1100.ms),
 
@@ -221,16 +259,19 @@ class _LoginViewState extends State<LoginView> {
                       );
                     },
                     child: RichText(
-                      text: TextSpan(
+                      text: const TextSpan(
                         text: "Don't have an account? ",
-                        style: const TextStyle(color: AppTheme.textMuted),
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                         children: [
                           TextSpan(
-                            text: 'Sign up',
+                            text: 'Sign Up',
                             style: TextStyle(
-                              color: AppTheme.primaryIndigo,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
@@ -246,29 +287,66 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+        color: Colors.black,
+      ),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
+    required String hint,
     required IconData icon,
     bool isPassword = false,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword && !_isPasswordVisible,
-      style: const TextStyle(fontWeight: FontWeight.w600),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: AppTheme.textMuted.withValues(alpha: 0.5),
+          fontWeight: FontWeight.w400,
+        ),
+        prefixIcon: Icon(icon, size: 22, color: AppTheme.textMuted),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
                   size: 20,
+                  color: AppTheme.textMuted,
                 ),
                 onPressed: () =>
                     setState(() => _isPasswordVisible = !_isPasswordVisible),
               )
             : null,
+        filled: true,
+        fillColor: const Color(0xFFF1F5F9), // Light grey background
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: AppTheme.secondarySky,
+            width: 1.5,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
       ),
     );
   }

@@ -9,7 +9,7 @@ import '../../../core/services/storage_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/one_ui_widgets.dart';
+import '../../../shared/widgets/aura_widgets.dart';
 
 class PlayerProfileView extends StatefulWidget {
   const PlayerProfileView({super.key});
@@ -59,34 +59,29 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
     _nameCtrl.text = u.name;
     _phoneCtrl.text = u.phoneNumber ?? '';
     _aadharCtrl.text = u.aadharNumber ?? '';
-    if (u is Player) {
-      final p = u;
-      _healthCtrl.text = p.healthIssueDetails ?? '';
-      _emergCtrl.text = p.emergencyContactNumber ?? '';
-      _dob = p.dateOfBirth;
-      _gender = p.gender;
-      _bloodGroup = p.bloodGroup;
-      _hasHealth = p.hasHealthIssues;
-    } else if (u is Organizer) {
-      final o = u;
-      _addrCtrl.text = o.address ?? '';
-      _bankCtrl.text = o.bankName ?? '';
-      _accCtrl.text = o.accountNumber ?? '';
-      _ifscCodeCtrl.text =
-          o.ifscCode ?? ''; // Note: I'll fix this variable name if needed
-      _panCtrl.text = o.panNumber ?? '';
-      _accessCtrl.text = o.accessDuration ?? '';
-    } else if (u is Owner) {
-      final ow = u;
-      _panCtrl.text = ow.panNumber ?? '';
+    if (u.roles.contains(UserRole.player)) {
+      _healthCtrl.text = u.healthIssueDetails ?? '';
+      _emergCtrl.text = u.emergencyContactNumber ?? '';
+      _dob = u.dateOfBirth;
+      _gender = u.gender;
+      _bloodGroup = u.bloodGroup;
+      _hasHealth = u.hasHealthIssues;
+    }
+    if (u.roles.contains(UserRole.organizer)) {
+      _addrCtrl.text = u.address ?? '';
+      _bankCtrl.text = u.bankName ?? '';
+      _accCtrl.text = u.accountNumber ?? '';
+      _ifscCtrl.text = u.ifscCode ?? '';
+      _panCtrl.text = u.panNumber ?? '';
+      _accessCtrl.text = u.accessDuration ?? '';
+    }
+    if (u.roles.contains(UserRole.owner)) {
+      _panCtrl.text = u.panNumber ?? '';
     }
     _profileBytes = null;
     _aadharBytes = null;
     if (mounted) setState(() {});
   }
-
-  // Helper variable fix for Organizer if mismatch above
-  TextEditingController get _ifscCodeCtrl => _ifscCtrl;
 
   @override
   void dispose() {
@@ -162,7 +157,7 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         if (aadharUrl != null) 'aadharPic': aadharUrl,
       };
 
-      if (user is Player) {
+      if (user.roles.contains(UserRole.player)) {
         updateData.addAll({
           'gender': _gender,
           'bloodGroup': _bloodGroup,
@@ -173,7 +168,8 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
               : null,
           'emergencyContactNumber': _emergCtrl.text.trim(),
         });
-      } else if (user is Organizer) {
+      }
+      if (user.roles.contains(UserRole.organizer)) {
         updateData.addAll({
           'address': _addrCtrl.text.trim(),
           'bankName': _bankCtrl.text.trim(),
@@ -182,7 +178,8 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
           'panNumber': _panCtrl.text.trim(),
           'accessDuration': _accessCtrl.text.trim(),
         });
-      } else if (user is Owner) {
+      }
+      if (user.roles.contains(UserRole.owner)) {
         updateData.addAll({'panNumber': _panCtrl.text.trim()});
       }
 
@@ -217,44 +214,24 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         key: _formKey,
         child: CustomScrollView(
           slivers: [
-            OneUISliverHeader(
+            AuraHeader(
               title: _isEditing ? 'Editing Profile' : 'My Profile',
               subtitle: user.email,
               actions: [
                 if (!_isEditing) ...[
                   IconButton(
                     onPressed: () => setState(() => _isEditing = true),
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: const Icon(
+                      Icons.edit_note_rounded,
+                      color: AppTheme.primaryIndigo,
+                    ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Sign Out'),
-                          content: const Text(
-                            'Are you sure you want to sign out?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                context.read<AuthViewModel>().signOut();
-                              },
-                              child: const Text(
-                                'Sign Out',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.logout, color: Colors.red),
+                    onPressed: () => _showSignOutDialog(),
+                    icon: const Icon(
+                      Icons.logout_rounded,
+                      color: AppTheme.accentCoral,
+                    ),
                   ),
                 ] else
                   IconButton(
@@ -264,13 +241,13 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
                             setState(() => _isEditing = false);
                             _load();
                           },
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close_rounded),
                   ),
               ],
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(AppTheme.sectionSpacing),
+                padding: const EdgeInsets.all(AppTheme.auraPadding),
                 child: Column(
                   children: [
                     // Profile Image
@@ -283,9 +260,7 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
                               width: 120,
                               height: 120,
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryIndigo.withValues(
-                                  alpha: 0.1,
-                                ),
+                                color: AppTheme.primaryIndigo.withOpacity(0.1),
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Colors.white,
@@ -311,10 +286,11 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
                                   ? Center(
                                       child: Text(
                                         user.name[0].toUpperCase(),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 48,
                                           fontWeight: FontWeight.bold,
-                                          color: AppTheme.primaryIndigo,
+                                          color: AppTheme.primaryIndigo
+                                              .withOpacity(0.1),
                                         ),
                                       ),
                                     )
@@ -343,297 +319,180 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
                     ),
                     const SizedBox(height: 32),
 
-                    OneUISection(
-                      title: 'PERSONAL INFORMATION',
-                      showSeparator: true,
-                      children: [
-                        _buildField(
-                          'Full Name',
-                          _nameCtrl,
-                          Icons.person_outline,
-                        ),
-                        _buildField(
-                          'Phone Number',
-                          _phoneCtrl,
-                          Icons.phone_outlined,
-                          type: TextInputType.phone,
-                        ),
-                        if (user is Player) ...[
-                          _buildSelectionRow(
-                            'Gender',
-                            _gender ?? 'Select',
-                            Icons.wc_outlined,
-                            () => _showGenderPicker(),
-                          ),
-                          _buildSelectionRow(
-                            'Birthday',
-                            _dob != null
-                                ? DateFormat('dd MMM yyyy').format(_dob!)
-                                : 'Select',
-                            Icons.cake_outlined,
-                            () => _showDatePicker(),
-                          ),
-                        ],
-                      ],
+                    // PERSONAL INFORMATION
+                    AuraStatsCard(
+                      label: 'Personal Information',
+                      value: '',
+                      icon: Icons.person_rounded,
+                      accentColor: AppTheme.primaryIndigo,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      'Full Name',
+                      _nameCtrl,
+                      Icons.person_outline_rounded,
+                    ),
+                    _buildField(
+                      'Phone Number',
+                      _phoneCtrl,
+                      Icons.phone_outlined,
+                      type: TextInputType.phone,
                     ),
 
-                    const SizedBox(height: 24),
-
-                    if (user is Player)
-                      OneUISection(
-                        title: 'EMERGENCY & HEALTH',
-                        showSeparator: true,
-                        children: [
-                          _buildField(
-                            'Emergency Contact',
-                            _emergCtrl,
-                            Icons.emergency_outlined,
-                            type: TextInputType.phone,
-                          ),
-                          _buildSelectionRow(
-                            'Blood Group',
-                            _bloodGroup ?? 'Select',
-                            Icons.bloodtype_outlined,
-                            () => _showBloodGroupPicker(),
-                          ),
-                          _buildToggleRow(
-                            'Health Issues',
-                            _hasHealth ?? false,
-                            Icons.health_and_safety_outlined,
-                            (val) => setState(() => _hasHealth = val),
-                          ),
-                          if (_hasHealth == true)
-                            _buildField(
-                              'Details',
-                              _healthCtrl,
-                              Icons.description_outlined,
-                              maxLines: 3,
-                            ),
-                        ],
+                    if (user.roles.contains(UserRole.player)) ...[
+                      _buildSelectionRow(
+                        'Gender',
+                        _gender ?? 'Select',
+                        Icons.wc_outlined,
+                        () => _showGenderPicker(),
                       ),
-
-                    if (user is Organizer) ...[
-                      OneUISection(
-                        title: 'PROFESSIONAL DETAILS',
-                        showSeparator: true,
-                        children: [
-                          _buildField(
-                            'Address',
-                            _addrCtrl,
-                            Icons.location_on_outlined,
-                          ),
-                          _buildField(
-                            'Access Duration',
-                            _accessCtrl,
-                            Icons.timer_outlined,
-                          ),
-                        ],
+                      _buildSelectionRow(
+                        'Birthday',
+                        _dob != null
+                            ? DateFormat('dd MMM yyyy').format(_dob!)
+                            : 'Select',
+                        Icons.cake_outlined,
+                        () => _showDatePicker(),
                       ),
                       const SizedBox(height: 24),
-                      OneUISection(
-                        title: 'BANKING & TAX',
-                        showSeparator: true,
-                        children: [
-                          _buildField(
-                            'Bank Name',
-                            _bankCtrl,
-                            Icons.account_balance_outlined,
-                          ),
-                          _buildField(
-                            'Account Number',
-                            _accCtrl,
-                            Icons.numbers_outlined,
-                          ),
-                          _buildField(
-                            'IFSC Code',
-                            _ifscCtrl,
-                            Icons.code_outlined,
-                          ),
-                          _buildField(
-                            'PAN Number',
-                            _panCtrl,
-                            Icons.badge_outlined,
-                          ),
-                        ],
+                      AuraStatsCard(
+                        label: 'Emergency & Health',
+                        value: '',
+                        icon: Icons.health_and_safety_rounded,
+                        accentColor: AppTheme.accentCoral,
                       ),
+                      const SizedBox(height: 16),
+                      _buildField(
+                        'Emergency Contact',
+                        _emergCtrl,
+                        Icons.emergency_outlined,
+                        type: TextInputType.phone,
+                      ),
+                      _buildSelectionRow(
+                        'Blood Group',
+                        _bloodGroup ?? 'Select',
+                        Icons.bloodtype_outlined,
+                        () => _showBloodGroupPicker(),
+                      ),
+                      _buildToggleRow(
+                        'Health Issues',
+                        _hasHealth ?? false,
+                        Icons.health_and_safety_outlined,
+                        (val) => setState(() => _hasHealth = val),
+                      ),
+                      if (_hasHealth == true)
+                        _buildField(
+                          'Details',
+                          _healthCtrl,
+                          Icons.description_outlined,
+                          maxLines: 3,
+                        ),
+                    ],
+
+                    if (user.roles.contains(UserRole.organizer)) ...[
+                      const SizedBox(height: 24),
+                      AuraStatsCard(
+                        label: 'Professional details',
+                        value: '',
+                        icon: Icons.work_rounded,
+                        accentColor: AppTheme.primaryIndigo,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildField(
+                        'Address',
+                        _addrCtrl,
+                        Icons.location_on_outlined,
+                      ),
+                      _buildField(
+                        'Access Duration',
+                        _accessCtrl,
+                        Icons.timer_outlined,
+                      ),
+                      const SizedBox(height: 24),
+                      AuraStatsCard(
+                        label: 'Banking & Tax',
+                        value: '',
+                        icon: Icons.account_balance_rounded,
+                        accentColor: AppTheme.primaryIndigo,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildField(
+                        'Bank Name',
+                        _bankCtrl,
+                        Icons.account_balance_outlined,
+                      ),
+                      _buildField(
+                        'Account Number',
+                        _accCtrl,
+                        Icons.numbers_outlined,
+                      ),
+                      _buildField('IFSC Code', _ifscCtrl, Icons.code_outlined),
+                      _buildField('PAN Number', _panCtrl, Icons.badge_outlined),
+                    ],
+
+                    if (user.roles.contains(UserRole.owner)) ...[
+                      const SizedBox(height: 24),
+                      AuraStatsCard(
+                        label: 'Tax details',
+                        value: '',
+                        icon: Icons.badge_rounded,
+                        accentColor: AppTheme.primaryIndigo,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildField('PAN Number', _panCtrl, Icons.badge_outlined),
                     ],
 
                     const SizedBox(height: 24),
-
-                    OneUISection(
-                      title: 'IDENTITY',
-                      showSeparator: true,
-                      children: [
-                        _buildField(
-                          'Aadhar Number',
-                          _aadharCtrl,
-                          Icons.credit_card_outlined,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Aadhar Card Image',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                  color: AppTheme.textMuted,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              GestureDetector(
-                                onTap: () => _pick(isProfile: false),
-                                child: OneUICard(
-                                  padding: EdgeInsets.zero,
-                                  child: _aadharBytes != null
-                                      ? Image.memory(
-                                          _aadharBytes!,
-                                          fit: BoxFit.cover,
-                                          height: 180,
-                                          width: double.infinity,
-                                        )
-                                      : (user.aadharPic != null
-                                            ? Image.network(
-                                                user.aadharPic!,
-                                                fit: BoxFit.cover,
-                                                height: 180,
-                                                width: double.infinity,
-                                              )
-                                            : Container(
-                                                height: 120,
-                                                width: double.infinity,
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons
-                                                          .add_photo_alternate_outlined,
-                                                      color: AppTheme.textMuted
-                                                          .withValues(
-                                                            alpha: 0.5,
-                                                          ),
-                                                      size: 32,
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    const Text(
-                                                      'Upload Aadhar Card',
-                                                      style: TextStyle(
-                                                        color:
-                                                            AppTheme.textMuted,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    AuraStatsCard(
+                      label: 'Identity',
+                      value: '',
+                      icon: Icons.credit_card_rounded,
+                      accentColor: AppTheme.primaryIndigo,
                     ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      'Aadhar Number',
+                      _aadharCtrl,
+                      Icons.credit_card_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAadharPicker(user),
 
                     const SizedBox(height: 48),
 
                     if (_isEditing)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: _saving
-                                    ? null
-                                    : () {
-                                        setState(() => _isEditing = false);
-                                        _load();
-                                      },
-                                child: const Text('Cancel'),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: _saving ? null : _save,
-                                child: _saving
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('Save Changes'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    OneUISection(
-                      title: 'ACCOUNT',
-                      showSeparator: true,
-                      children: [
-                        ListTile(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Sign Out'),
-                                content: const Text(
-                                  'Are you sure you want to sign out?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      context.read<AuthViewModel>().signOut();
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _saving
+                                  ? null
+                                  : () {
+                                      setState(() => _isEditing = false);
+                                      _load();
                                     },
-                                    child: const Text(
-                                      'Sign Out',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.logout,
-                              color: Colors.red,
-                              size: 20,
+                              child: const Text('Cancel'),
                             ),
                           ),
-                          title: const Text(
-                            'Sign Out',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              onPressed: _saving ? null : _save,
+                              child: _saving
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text('Save Changes'),
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            size: 20,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
                     const SizedBox(height: 80),
                   ],
@@ -658,7 +517,7 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         leading: Icon(
           icon,
           size: 20,
-          color: AppTheme.primaryIndigo.withValues(alpha: 0.7),
+          color: AppTheme.primaryIndigo.withOpacity(0.7),
         ),
         title: Text(
           label,
@@ -678,7 +537,6 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         ),
       );
     }
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextFormField(
@@ -701,7 +559,7 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
       leading: Icon(
         icon,
         size: 20,
-        color: AppTheme.primaryIndigo.withValues(alpha: 0.7),
+        color: AppTheme.primaryIndigo.withOpacity(0.7),
       ),
       title: Text(
         label,
@@ -735,7 +593,7 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
       secondary: Icon(
         icon,
         size: 20,
-        color: AppTheme.primaryIndigo.withValues(alpha: 0.7),
+        color: AppTheme.primaryIndigo.withOpacity(0.7),
       ),
       title: Text(
         label,
@@ -746,6 +604,81 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    );
+  }
+
+  Widget _buildAadharPicker(AppUser user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Aadhar Card Image',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            color: AppTheme.textMuted,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () => _pick(isProfile: false),
+          child: Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundWhite,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderLight),
+              image: _aadharBytes != null
+                  ? DecorationImage(
+                      image: MemoryImage(_aadharBytes!),
+                      fit: BoxFit.cover,
+                    )
+                  : (user.aadharPic != null
+                        ? DecorationImage(
+                            image: NetworkImage(user.aadharPic!),
+                            fit: BoxFit.cover,
+                          )
+                        : null),
+            ),
+            child: (_aadharBytes == null && user.aadharPic == null)
+                ? const Center(
+                    child: Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: AppTheme.textMuted,
+                      size: 32,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showSignOutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AuthViewModel>().signOut();
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(color: AppTheme.accentCoral),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -785,18 +718,6 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
       initialDate: _dob ?? DateTime(2000),
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.primaryIndigo,
-              onPrimary: Colors.white,
-              onSurface: AppTheme.textDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (d != null) setState(() => _dob = d);
   }
@@ -808,26 +729,29 @@ class _PlayerProfileViewState extends State<PlayerProfileView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-                .map(
-                  (bg) => ListTile(
-                    title: Text(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        child: GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          children: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+              .map(
+                (bg) => InkWell(
+                  onTap: () {
+                    setState(() => _bloodGroup = bg);
+                    Navigator.pop(context);
+                  },
+                  child: Center(
+                    child: Text(
                       bg,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                    onTap: () {
-                      setState(() => _bloodGroup = bg);
-                      Navigator.pop(context);
-                    },
                   ),
-                )
-                .toList(),
-          ),
+                ),
+              )
+              .toList(),
         ),
       ),
     );

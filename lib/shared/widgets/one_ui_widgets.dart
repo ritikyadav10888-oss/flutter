@@ -27,6 +27,35 @@ class OneUIResponsivePadding extends StatelessWidget {
   }
 }
 
+class OneUIHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  const OneUIHeader({super.key, required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryIndigo,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
 class OneUISliverHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -44,17 +73,18 @@ class OneUISliverHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: expanded ? 200.0 : null,
+      expandedHeight: expanded ? 220.0 : null,
       floating: false,
       pinned: true,
       centerTitle: true,
       elevation: 0,
       scrolledUnderElevation: 0,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppTheme.backgroundWhite,
+      surfaceTintColor: Colors.transparent,
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           final top = constraints.biggest.height;
-          final isExpanded = top > 120;
+          final isExpanded = top > 130;
           final opacity = isExpanded ? 0.0 : 1.0;
 
           return FlexibleSpaceBar(
@@ -70,34 +100,36 @@ class OneUISliverHeader extends StatelessWidget {
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   fontSize: 18,
+                  color: AppTheme.textDark,
                 ),
               ),
             ),
             background: expanded
                 ? Container(
-                    padding: const EdgeInsets.only(top: 60),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.backgroundWhite,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        const SizedBox(height: 40),
                         Text(
                               title,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.displayLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textDark,
-                                  ),
+                                  ?.copyWith(color: AppTheme.textDark),
                             )
                             .animate()
-                            .fadeIn(duration: 400.ms)
-                            .scale(
-                              begin: const Offset(0.9, 0.9),
-                              end: const Offset(1, 1),
+                            .fadeIn(duration: 500.ms)
+                            .moveY(
+                              begin: 20,
+                              end: 0,
+                              curve: Curves.easeOutCirc,
                             ),
                         if (subtitle != null) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(
                             subtitle!,
                             style: Theme.of(context).textTheme.bodyLarge
@@ -105,7 +137,7 @@ class OneUISliverHeader extends StatelessWidget {
                                   color: AppTheme.textMuted,
                                   fontWeight: FontWeight.w500,
                                 ),
-                          ).animate().fadeIn(delay: 200.ms),
+                          ).animate().fadeIn(delay: 300.ms),
                         ],
                       ],
                     ),
@@ -123,18 +155,34 @@ class OneUICard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final bool useGlass;
 
-  const OneUICard({super.key, required this.child, this.padding, this.onTap});
+  const OneUICard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.onTap,
+    this.useGlass = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundWhite,
         borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(AppTheme.cardPadding),
-          child: child,
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: AppTheme.borderLight, width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(AppTheme.cardPadding),
+            child: child,
+          ),
         ),
       ),
     );
@@ -150,7 +198,7 @@ class OneUISection extends StatelessWidget {
     super.key,
     this.title,
     required this.children,
-    this.showSeparator = false,
+    this.showSeparator = true,
   });
 
   @override
@@ -160,25 +208,21 @@ class OneUISection extends StatelessWidget {
       children: [
         if (title != null)
           Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 12, top: 8),
+            padding: const EdgeInsets.only(left: 8, bottom: 12, top: 16),
             child: Text(
-              title!.toUpperCase(),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: AppTheme.primaryIndigo,
+              title!,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppTheme.textDark,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                fontSize: 12,
+                fontSize: 16,
               ),
             ),
           ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.backgroundWhite,
             borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-            border: Border.all(
-              color: Colors.grey[200]!.withValues(alpha: 0.5),
-              width: 1,
-            ),
+            border: Border.all(color: AppTheme.borderLight, width: 1),
             boxShadow: AppTheme.cardShadow,
           ),
           child: ClipRRect(
@@ -188,12 +232,12 @@ class OneUISection extends StatelessWidget {
                 for (int i = 0; i < children.length; i++) ...[
                   children[i],
                   if (showSeparator && i < children.length - 1)
-                    Divider(
+                    const Divider(
                       height: 1,
                       thickness: 1,
-                      color: Colors.grey[100],
-                      indent: 16,
-                      endIndent: 16,
+                      color: AppTheme.borderLight,
+                      indent: 20,
+                      endIndent: 20,
                     ),
                 ],
               ],
@@ -224,20 +268,14 @@ class OneUISearchBar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: AppTheme.sectionSpacing,
-        vertical: 8,
+        vertical: 12,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundWhite,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.surfaceGrey,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.softShadow,
       ),
       child: TextField(
         controller: controller,
@@ -245,19 +283,25 @@ class OneUISearchBar extends StatelessWidget {
         inputFormatters: oneWordOnly
             ? [FilteringTextInputFormatter.deny(RegExp(r'\s'))]
             : null,
+        style: const TextStyle(
+          color: AppTheme.textDark,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
             color: AppTheme.textMuted.withValues(alpha: 0.6),
-            fontSize: 14,
+            fontSize: 15,
           ),
           icon: const Icon(
-            Icons.search,
+            Icons.search_rounded,
             color: AppTheme.primaryIndigo,
-            size: 20,
+            size: 22,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );

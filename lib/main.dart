@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:provider/provider.dart';
+// Firebase imports removed
 import 'core/theme/app_theme.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
 import 'features/owner/viewmodels/organizer_viewmodel.dart';
@@ -14,7 +14,7 @@ import 'features/auth/views/player_profile_form_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Firebase.initializeApp removed for custom Node.js backend
 
   runApp(const MyApp());
 }
@@ -34,8 +34,7 @@ class MyApp extends StatelessWidget {
         title: 'Force Player Register',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light, // Defaulting to light mode as requested
+        themeMode: ThemeMode.light,
         home: const AuthWrapper(),
       ),
     );
@@ -82,8 +81,8 @@ class AuthWrapper extends StatelessWidget {
       return const LoginView();
     }
 
-    // Role-based navigation
-    switch (authViewModel.user!.role.name) {
+    // Role-based navigation based on activeRole
+    switch (authViewModel.user!.activeRole.name) {
       case 'owner':
         return const OwnerDashboard();
       case 'organizer':
