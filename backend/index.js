@@ -17,6 +17,7 @@ app.use(helmet({
 // CORS configuration - Allow local dev and the Render URL
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:8080',
   'https://flutter-die1.onrender.com'
 ];
 
