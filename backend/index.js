@@ -9,8 +9,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Security Middleware
-app.use(helmet());
+// Security Middleware - Relaxed CSP for development
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 
 // CORS configuration - Allow local dev and the Render URL
 const allowedOrigins = [
