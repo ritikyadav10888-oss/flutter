@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS player_profiles (
     profile_pic TEXT,
     aadhar_number TEXT,
     aadhar_pic TEXT,
+    date_of_birth DATE,
+    gender TEXT,
+    blood_group TEXT,
+    emergency_contact_number TEXT,
+    has_health_issues BOOLEAN DEFAULT false,
+    health_issue_details TEXT,
+    playing_position TEXT,
     is_profile_complete BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

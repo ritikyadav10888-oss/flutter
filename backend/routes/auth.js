@@ -332,8 +332,16 @@ router.patch('/users/:id', authMiddleware, async (req, res) => {
     }
 
     const userFields = ['name'];
-    const playerFields = ['phone_number', 'profile_pic', 'aadhar_number', 'aadhar_pic', 'is_profile_complete'];
-    const organizerFields = ['phone_number', 'profile_pic', 'address', 'aadhar_number', 'aadhar_pic', 'pan_number', 'pan_pic', 'bank_name', 'account_number', 'ifsc_code', 'access_duration'];
+    const playerFields = [
+      'phone_number', 'profile_pic', 'aadhar_number', 'aadhar_pic', 'is_profile_complete',
+      'date_of_birth', 'gender', 'blood_group', 'emergency_contact_number',
+      'has_health_issues', 'health_issue_details', 'playing_position'
+    ];
+    const organizerFields = [
+      'phone_number', 'profile_pic', 'address', 'aadhar_number', 'aadhar_pic',
+      'pan_number', 'pan_pic', 'bank_name', 'account_number', 'ifsc_code',
+      'access_duration', 'is_profile_complete'
+    ];
 
     const userUpdates = {};
     const profileUpdates = {};

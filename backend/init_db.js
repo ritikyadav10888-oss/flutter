@@ -30,6 +30,13 @@ const queries = [
       profile_pic TEXT,
       aadhar_number TEXT,
       aadhar_pic TEXT,
+      date_of_birth DATE,
+      gender TEXT,
+      blood_group TEXT,
+      emergency_contact_number TEXT,
+      has_health_issues BOOLEAN DEFAULT false,
+      health_issue_details TEXT,
+      playing_position TEXT,
       is_profile_complete BOOLEAN DEFAULT false,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -47,7 +54,7 @@ const queries = [
       account_number TEXT,
       ifsc_code TEXT,
       access_duration TEXT,
-      is_profile_complete BOOLEAN DEFAULT true,
+      is_profile_complete BOOLEAN DEFAULT false,
       profile_pic TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -84,6 +91,15 @@ const queries = [
       payment_id TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   )`,
+  // Alterations to support existing databases
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS gender TEXT",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS blood_group TEXT",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS emergency_contact_number TEXT",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS has_health_issues BOOLEAN DEFAULT false",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS health_issue_details TEXT",
+  "ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS playing_position TEXT",
+  "ALTER TABLE organizer_profiles ADD COLUMN IF NOT EXISTS is_profile_complete BOOLEAN DEFAULT false",
   "NOTIFY pgrst, 'reload schema'"
 ];
 
