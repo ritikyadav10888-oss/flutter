@@ -1,18 +1,5 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+-- Force Sports Database Schema (Modular)
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
-const schema = `
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -78,7 +65,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     location TEXT NOT NULL,
     status TEXT DEFAULT 'OPEN',
     banner_url TEXT,
-    organizer_id UUID REFERENCES users(id),
+    organizer_id UUID REFERENCES users(id), -- Points to the User ID of the organizer
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -95,18 +82,3 @@ CREATE TABLE IF NOT EXISTS registrations (
     payment_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-`;
-
-async function init() {
-  try {
-    console.log('Connecting to database...');
-    await pool.query(schema);
-    console.log('Database initialized successfully!');
-    process.exit(0);
-  } catch (err) {
-    console.error('Error initializing database:', err);
-    process.exit(1);
-  }
-}
-
-init();

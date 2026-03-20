@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: force-sports-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_VERSION
+        value: 18.16.0 # Adjust to your local Node version if needed
+      - key: DATABASE_URL
+        sync: false # Set this in Render Dashboard
+      - key: JWT_SECRET
+        generateValue: true # Render will generate a random secret

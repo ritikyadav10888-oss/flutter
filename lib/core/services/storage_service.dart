@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 
 class StorageService {
-  static const String baseUrl = 'https://force-sports-backend.onrender.com/api';
+  static const String baseUrl = 'https://flutter-die1.onrender.com/api';
   final AuthService _authService = AuthService();
 
   /// Uploads a generic file byte array and returns the download URL

@@ -86,6 +86,17 @@ router.post('/', auth, async (req, res) => {
 router.patch('/:id', auth, async (req, res) => {
   const updates = req.body;
   try {
+    // Check authorization: Must be the creator (owner) or the assigned organizer
+    const { data: tournamentCheck, error: checkError } = await supabase
+      .from('tournaments')
+      .select('created_by, organizer_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (checkError || (tournamentCheck.created_by !== req.user.id && tournamentCheck.organizer_id !== req.user.id)) {
+      return res.status(403).json({ error: 'Permission denied. You do not have access to update this tournament.' });
+    }
+
     const { data: tournament, error } = await supabase
       .from('tournaments')
       .update(updates)
@@ -101,10 +112,21 @@ router.patch('/:id', auth, async (req, res) => {
   }
 });
 
-// Assign an organizer to a tournament
+// Assign an organizer to a tournament (Only for Creator/Owner)
 router.patch('/:id/assign-organizer', auth, async (req, res) => {
   const { organizerId } = req.body;
   try {
+    // Check authorization
+    const { data: tournamentCheck, error: checkError } = await supabase
+      .from('tournaments')
+      .select('created_by')
+      .eq('id', req.params.id)
+      .single();
+
+    if (checkError || tournamentCheck.created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Permission denied. Only the tournament creator can assign organizers.' });
+    }
+
     const { data: tournament, error } = await supabase
       .from('tournaments')
       .update({ organizer_id: organizerId })
@@ -120,10 +142,21 @@ router.patch('/:id/assign-organizer', auth, async (req, res) => {
   }
 });
 
-// Update tournament status
+// Update tournament status (Only for Creator/Owner or Assigned Organizer)
 router.patch('/:id/status', auth, async (req, res) => {
   const { status } = req.body;
   try {
+    // Check authorization
+    const { data: tournamentCheck, error: checkError } = await supabase
+      .from('tournaments')
+      .select('created_by, organizer_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (checkError || (tournamentCheck.created_by !== req.user.id && tournamentCheck.organizer_id !== req.user.id)) {
+      return res.status(403).json({ error: 'Permission denied. You do not have access to change the status of this tournament.' });
+    }
+
     const { data: tournament, error } = await supabase
       .from('tournaments')
       .update({ status })

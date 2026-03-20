@@ -100,18 +100,20 @@ class AppUser {
     if (rolesList.isEmpty) rolesList.add(UserRole.player);
 
     // Active Role
-    final activeRoleStr = (map['activeRole'] as String?)?.toLowerCase();
+    final activeRoleStr = (map['activeRole'] as String? ?? map['active_role'] as String?)?.toLowerCase();
     final activeRole = UserRole.values.firstWhere(
       (e) => e.name == activeRoleStr,
       orElse: () => rolesList.first,
     );
 
+    // Profiles
+    final profile = map['profile'] as Map<String, dynamic>?;
+
     DateTime? dob;
-    if (map['dateOfBirth'] != null) {
-      if (map['dateOfBirth'] is Timestamp) {
-        dob = (map['dateOfBirth'] as Timestamp).toDate();
-      } else if (map['dateOfBirth'] is String) {
-        dob = DateTime.tryParse(map['dateOfBirth']);
+    if (profile?['date_of_birth'] != null || map['dateOfBirth'] != null) {
+      final dobValue = profile?['date_of_birth'] ?? map['dateOfBirth'];
+      if (dobValue is String) {
+        dob = DateTime.tryParse(dobValue);
       }
     }
 
@@ -122,30 +124,30 @@ class AppUser {
       activeRole: activeRole,
       name: map['name'] ?? '',
       createdAt: map['createdAt'] != null
-          ? (map['createdAt'] is Timestamp
-                ? (map['createdAt'] as Timestamp).toDate()
-                : DateTime.parse(map['createdAt'].toString()))
-          : DateTime.now(),
-      isProfileComplete: map['isProfileComplete'] ?? false,
-      phoneNumber: map['phoneNumber'],
-      profilePic: map['profilePic'],
-      aadharNumber: map['aadharNumber'],
-      aadharPic: map['aadharPic'],
+          ? (DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now())
+          : (map['created_at'] != null 
+                ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
+                : DateTime.now()),
+      isProfileComplete: profile?['is_profile_complete'] ?? map['is_profile_complete'] ?? map['isProfileComplete'] ?? false,
+      phoneNumber: profile?['phone_number'] ?? map['phone_number'] ?? map['phoneNumber'],
+      profilePic: profile?['profile_pic'] ?? map['profile_pic'] ?? map['profilePic'],
+      aadharNumber: profile?['aadhar_number'] ?? map['aadhar_number'] ?? map['aadharNumber'],
+      aadharPic: profile?['aadhar_pic'] ?? map['aadhar_pic'] ?? map['aadharPic'],
       dateOfBirth: dob,
-      gender: map['gender'],
-      emergencyContactNumber: map['emergencyContactNumber'],
-      hasHealthIssues: map['hasHealthIssues'],
-      healthIssueDetails: map['healthIssueDetails'],
-      playingPosition: map['playingPosition'],
-      bloodGroup: map['bloodGroup'],
-      ownerId: map['ownerId'],
-      address: map['address'],
-      panNumber: map['panNumber'],
-      panPic: map['panPic'],
-      bankName: map['bankName'],
-      accountNumber: map['accountNumber'],
-      ifscCode: map['ifscCode'],
-      accessDuration: map['accessDuration'],
+      gender: profile?['gender'] ?? map['gender'],
+      emergencyContactNumber: profile?['emergency_contact_number'] ?? map['emergency_contact_number'] ?? map['emergencyContactNumber'],
+      hasHealthIssues: profile?['has_health_issues'] ?? map['has_health_issues'] ?? map['hasHealthIssues'],
+      healthIssueDetails: profile?['health_issue_details'] ?? map['health_issue_details'] ?? map['healthIssueDetails'],
+      playingPosition: profile?['playing_position'] ?? map['playing_position'] ?? map['playingPosition'],
+      bloodGroup: profile?['blood_group'] ?? map['blood_group'] ?? map['bloodGroup'],
+      ownerId: profile?['owner_id'] ?? map['owner_id'] ?? map['ownerId'],
+      address: profile?['address'] ?? map['address'],
+      panNumber: profile?['pan_number'] ?? map['pan_number'] ?? map['panNumber'],
+      panPic: profile?['pan_pic'] ?? map['pan_pic'] ?? map['panPic'],
+      bankName: profile?['bank_name'] ?? map['bank_name'] ?? map['bankName'],
+      accountNumber: profile?['account_number'] ?? map['account_number'] ?? map['accountNumber'],
+      ifscCode: profile?['ifsc_code'] ?? map['ifsc_code'] ?? map['ifscCode'],
+      accessDuration: profile?['access_duration'] ?? map['access_duration'] ?? map['accessDuration'],
     );
   }
 
@@ -155,13 +157,13 @@ class AppUser {
       'roles': roles.map((r) => r.name.toUpperCase()).toList(),
       'activeRole': activeRole.name,
       'name': name,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': createdAt.toIso8601String(),
       'isProfileComplete': isProfileComplete,
       'phoneNumber': phoneNumber,
       'profilePic': profilePic,
       'aadharNumber': aadharNumber,
       'aadharPic': aadharPic,
-      if (dateOfBirth != null) 'dateOfBirth': Timestamp.fromDate(dateOfBirth!),
+      if (dateOfBirth != null) 'dateOfBirth': dateOfBirth!.toIso8601String(),
       'gender': gender,
       'emergencyContactNumber': emergencyContactNumber,
       'hasHealthIssues': hasHealthIssues,
@@ -287,16 +289,16 @@ class Tournament {
       rules: List<String>.from(map['rules'] ?? []),
       terms: map['terms'] ?? '',
       date: map['date'] != null
-          ? (map['date'] as Timestamp).toDate()
+          ? (DateTime.tryParse(map['date'].toString()) ?? DateTime.now())
           : DateTime.now(),
       endDate: map['endDate'] != null
-          ? (map['endDate'] as Timestamp).toDate()
+          ? (DateTime.tryParse(map['endDate'].toString()))
           : null,
       registrationDeadline: map['registrationDeadline'] != null
-          ? (map['registrationDeadline'] as Timestamp).toDate()
+          ? (DateTime.tryParse(map['registrationDeadline'].toString()))
           : null,
       organizerAccessExpiry: map['organizerAccessExpiry'] != null
-          ? (map['organizerAccessExpiry'] as Timestamp).toDate()
+          ? (DateTime.tryParse(map['organizerAccessExpiry'].toString()))
           : null,
       location: map['location'] ?? '',
       bannerUrl: map['bannerUrl'] ?? '',
@@ -322,12 +324,12 @@ class Tournament {
       'prizePool': prizePool,
       'rules': rules,
       'terms': terms,
-      'date': Timestamp.fromDate(date),
-      if (endDate != null) 'endDate': Timestamp.fromDate(endDate!),
+      'date': date.toIso8601String(),
+      if (endDate != null) 'endDate': endDate!.toIso8601String(),
       if (registrationDeadline != null)
-        'registrationDeadline': Timestamp.fromDate(registrationDeadline!),
+        'registrationDeadline': registrationDeadline!.toIso8601String(),
       if (organizerAccessExpiry != null)
-        'organizerAccessExpiry': Timestamp.fromDate(organizerAccessExpiry!),
+        'organizerAccessExpiry': organizerAccessExpiry!.toIso8601String(),
       'location': location,
       'bannerUrl': bannerUrl,
       'organizerId': organizerId,
@@ -371,7 +373,7 @@ class Registration {
       playerName: map['playerName'] ?? '',
       playerEmail: map['playerEmail'] ?? '',
       registrationDate: map['registrationDate'] != null
-          ? (map['registrationDate'] as Timestamp).toDate()
+          ? (DateTime.tryParse(map['registrationDate'].toString()) ?? DateTime.now())
           : DateTime.now(),
       status: map['status'] ?? 'PENDING',
       ownerId: map['ownerId'] ?? '',
@@ -384,7 +386,7 @@ class Registration {
       'playerUid': playerUid,
       'playerName': playerName,
       'playerEmail': playerEmail,
-      'registrationDate': Timestamp.fromDate(registrationDate),
+      'registrationDate': registrationDate.toIso8601String(),
       'status': status,
       'ownerId': ownerId,
     };

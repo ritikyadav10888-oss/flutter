@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/provider.dart';
 // Firebase imports removed
 import 'core/theme/app_theme.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';

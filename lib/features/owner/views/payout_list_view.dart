@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/models/models.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -18,12 +17,8 @@ class PayoutListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('registrations')
-            .where('ownerId', isEqualTo: ownerId)
-            .orderBy('registrationDate', descending: true)
-            .snapshots(),
+      body: FutureBuilder<List<Registration>>(
+        future: Future.value([]), // TODO: Implement API fetch in backend/frontend
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -38,10 +33,10 @@ class PayoutListView extends StatelessWidget {
                       size: 48,
                     ),
                     const SizedBox(height: 16),
-                    Text(
+                    const Text(
                       'Unable to load payouts. Please check your permissions.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.red[700]),
+                      style: TextStyle(color: Colors.red),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -59,12 +54,7 @@ class PayoutListView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final registrations = snapshot.data!.docs.map((doc) {
-            return Registration.fromMap(
-              doc.data() as Map<String, dynamic>,
-              doc.id,
-            );
-          }).toList();
+          final registrations = snapshot.data ?? [];
 
           if (registrations.isEmpty) {
             return Center(

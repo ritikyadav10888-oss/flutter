@@ -7,7 +7,7 @@ import '../models/models.dart';
 
 class AuthService {
   // Use your Render URL here
-  static const String baseUrl = 'https://force-sports-backend.onrender.com/api';
+  static const String baseUrl = 'https://flutter-die1.onrender.com/api';
   final _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -28,6 +28,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        // data contains { id, email, ..., profile: { ... } }
         yield AppUser.fromMap(data, data['id']);
       } else {
         yield null;
@@ -57,7 +58,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         await _storage.write(key: 'jwt', value: data['token']);
-        return AppUser.fromMap(data['user'], data['user']['id']);
+        return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
         throw Exception(error['error'] ?? 'Google Sign-In failed');
@@ -79,7 +80,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         await _storage.write(key: 'jwt', value: data['token']);
-        return AppUser.fromMap(data['user'], data['user']['id']);
+        return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
         throw Exception(error['error'] ?? 'Login failed');
@@ -110,7 +111,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         await _storage.write(key: 'jwt', value: data['token']);
-        return AppUser.fromMap(data['user'], data['user']['id']);
+        return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
         throw Exception(error['error'] ?? 'Registration failed');
@@ -140,7 +141,47 @@ class AuthService {
     }
   }
 
-  // Owner creates an Organizer account
+  // Get all players (for owner)
+  Future<List<AppUser>> getPlayers() async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/players'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((u) => AppUser.fromMap(u, u['id'])).toList();
+      } else {
+        throw Exception('Failed to fetch players');
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Update player profile
+  Future<void> updatePlayerProfile(String uid, Map<String, dynamic> data) async {
+    try {
+      final token = await getToken();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/auth/users/$uid'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['error'] ?? 'Update failed');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
   Future<void> createOrganizer({
     required String email,
     required String password,

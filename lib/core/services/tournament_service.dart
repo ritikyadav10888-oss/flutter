@@ -4,7 +4,7 @@ import '../models/models.dart';
 import 'auth_service.dart';
 
 class TournamentService {
-  static const String baseUrl = 'https://force-sports-backend.onrender.com/api';
+  static const String baseUrl = 'https://flutter-die1.onrender.com/api';
   final AuthService _authService = AuthService();
 
   // Stream of all tournaments (polling implementation)

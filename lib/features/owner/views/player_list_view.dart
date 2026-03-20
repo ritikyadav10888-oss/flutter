@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/models/models.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../shared/widgets/one_ui_widgets.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../shared/widgets/aura_widgets.dart';
 import 'player_details_view.dart';
 
@@ -28,11 +28,8 @@ class _PlayerListViewState extends State<PlayerListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .where('roles', arrayContains: UserRole.player.name)
-            .snapshots(),
+      body: FutureBuilder<List<AppUser>>(
+        future: AuthService().getPlayers(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -42,9 +39,7 @@ class _PlayerListViewState extends State<PlayerListView> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final allPlayers = snapshot.data!.docs.map((doc) {
-            return AppUser.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-          }).toList();
+          final allPlayers = snapshot.data ?? [];
 
           final filteredPlayers = allPlayers.where((p) {
             return p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
