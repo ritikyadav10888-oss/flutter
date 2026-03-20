@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import '../constants/api_constants.dart';
 import 'auth_service.dart';
 
 class StorageService {
-  static const String baseUrl = 'https://flutter-die1.onrender.com/api';
+  static const String baseUrl = ApiConstants.baseUrl;
   final AuthService _authService = AuthService();
 
   /// Uploads a generic file byte array and returns the download URL

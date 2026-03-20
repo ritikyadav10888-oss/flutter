@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../constants/api_constants.dart';
 import '../models/models.dart';
 
 class AuthService {
-  // Use your Render URL here
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = ApiConstants.baseUrl;
   final _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: '538870113377-3sd94fguge6f9n2nam5smsq4tmcfj5no.apps.googleusercontent.com',
