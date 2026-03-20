@@ -20,6 +20,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  String _selectedRole = 'player'; // Added role state
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +94,37 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
 
                 const SizedBox(height: 40),
+
+                // Role Selection Toggle
+                _buildFieldLabel('Register As'),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildRoleButton(
+                          label: 'Player',
+                          isSelected: _selectedRole == 'player',
+                          onTap: () => setState(() => _selectedRole = 'player'),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildRoleButton(
+                          label: 'Organizer',
+                          isSelected: _selectedRole == 'organizer',
+                          onTap: () => setState(() => _selectedRole = 'organizer'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 450.ms),
+
+                const SizedBox(height: 30),
 
                 // Input Fields
                 _buildFieldLabel('Full Name'),
@@ -184,6 +216,7 @@ class _RegisterViewState extends State<RegisterView> {
                             email: email,
                             password: password,
                             name: name,
+                            role: _selectedRole, // Passed selected role
                           );
 
                           if (!mounted) return;
@@ -322,6 +355,41 @@ class _RegisterViewState extends State<RegisterView> {
                 ).animate().fadeIn(delay: 1200.ms),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F172A) : Colors.transparent,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.textMuted,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),

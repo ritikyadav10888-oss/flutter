@@ -10,6 +10,7 @@ import 'features/owner/views/owner_dashboard.dart';
 import 'features/organizer/views/organizer_dashboard.dart';
 import 'features/player/views/player_dashboard.dart';
 import 'features/auth/views/player_profile_form_view.dart';
+import 'features/auth/views/organizer_profile_form_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +86,9 @@ class AuthWrapper extends StatelessWidget {
       case 'owner':
         return const OwnerDashboard();
       case 'organizer':
+        if (!authViewModel.user!.isProfileComplete) {
+          return OrganizerProfileFormView(uid: authViewModel.user!.uid);
+        }
         return const OrganizerDashboard();
       case 'player':
       default:
