@@ -60,8 +60,6 @@ router.post('/google', async (req, res) => {
       
       if (profileError) {
         console.error('Create Player Profile Error:', profileError);
-        // We don't necessarily want to fail the whole login if profile creation fails, 
-        // but it's good to know.
       }
     }
 
@@ -134,8 +132,6 @@ router.post('/register', async (req, res) => {
     
     if (profileError) {
       console.error('Create Profile Error:', profileError);
-      // If profile creation fails, we might have an orphan user. 
-      // For now, let's treat it as a server error.
       throw profileError;
     }
 
@@ -186,7 +182,7 @@ router.post('/login', async (req, res) => {
     res.json({ token, user, profile });
   } catch (err) {
     console.error('Login Error:', err);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -203,18 +199,14 @@ router.get('/me', authMiddleware, async (req, res) => {
 
     // Fetch profile based on active role
     let profile = null;
-    if (user.active_role === 'organizer') {
-      const { data: orgProfile } = await supabase.from('organizer_profiles').select('*').eq('user_id', user.id).single();
-      profile = orgProfile;
-    } else {
-      const { data: playerProfile } = await supabase.from('player_profiles').select('*').eq('user_id', user.id).single();
-      profile = playerProfile;
-    }
+    const roleTable = user.active_role === 'organizer' ? 'organizer_profiles' : 'player_profiles';
+    const { data: userProfile } = await supabase.from(roleTable).select('*').eq('user_id', user.id).single();
+    profile = userProfile;
 
     res.json({ ...user, profile });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -230,7 +222,7 @@ router.get('/organizers', authMiddleware, async (req, res) => {
     res.json(organizers);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -307,17 +299,16 @@ router.post('/create-organizer', authMiddleware, async (req, res) => {
     res.json(user);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
-// Update a user (any user can update themselves, or owner can update their organizers)
+// Update a user
 router.patch('/users/:id', authMiddleware, async (req, res) => {
   const userId = req.params.id;
   const updates = req.body;
 
   try {
-    // Check authentication and role for authorization
     const { data: targetUser, error: targetError } = await supabase
         .from('users')
         .select('active_role')
@@ -326,7 +317,6 @@ router.patch('/users/:id', authMiddleware, async (req, res) => {
     
     if (targetError) throw targetError;
 
-    // Check authorization: self or owner of organizer
     if (req.user.id !== userId) {
       const { data: orgProfile } = await supabase
         .from('organizer_profiles')
@@ -339,7 +329,6 @@ router.patch('/users/:id', authMiddleware, async (req, res) => {
       }
     }
 
-    // Separate User table updates from Profile table updates
     const userFields = ['name'];
     const playerFields = ['phone_number', 'profile_pic', 'aadhar_number', 'aadhar_pic', 'is_profile_complete'];
     const organizerFields = ['phone_number', 'profile_pic', 'address', 'aadhar_number', 'aadhar_pic', 'pan_number', 'pan_pic', 'bank_name', 'account_number', 'ifsc_code', 'access_duration'];
@@ -353,7 +342,6 @@ router.patch('/users/:id', authMiddleware, async (req, res) => {
       if (targetUser.active_role === 'player' && playerFields.includes(key)) profileUpdates[key] = updates[key];
     });
 
-    // Perform updates
     if (Object.keys(userUpdates).length > 0) {
       await supabase.from('users').update(userUpdates).eq('id', userId);
     }
@@ -366,7 +354,7 @@ router.patch('/users/:id', authMiddleware, async (req, res) => {
     res.json({ message: 'User updated successfully' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 

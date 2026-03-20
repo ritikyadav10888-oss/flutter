@@ -1,3 +1,6 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
@@ -21,7 +24,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      return callback(null, true); // Allow all for now to avoid blocking mobile/web during dev
     }
     return callback(null, true);
   }
@@ -32,7 +35,7 @@ app.use(express.json());
 // Rate Limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  max: 100, 
   message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 

@@ -258,7 +258,7 @@ class _RegisterViewState extends State<RegisterView> {
                 OutlinedButton(
                   onPressed: () => viewModel.signInWithGoogle(),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
                     side: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -268,22 +268,23 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const FaIcon(
                         FontAwesomeIcons.google,
                         color: Color(0xFF4285F4),
-                        size: 22,
+                        size: 20,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       const Flexible(
                         child: Text(
                           'Continue with Google',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ),
