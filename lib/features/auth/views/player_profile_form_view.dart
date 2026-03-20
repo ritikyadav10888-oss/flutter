@@ -128,7 +128,7 @@ class _PlayerProfileFormViewState extends State<PlayerProfileFormView> {
             : null,
         'profilePic': profileUrl,
         'aadharPic': aadharUrl,
-        'isProfileCompleted': true,
+        'isProfileComplete': true,
       });
 
       if (success && mounted) {

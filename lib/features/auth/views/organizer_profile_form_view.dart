@@ -126,7 +126,7 @@ class _OrganizerProfileFormViewState extends State<OrganizerProfileFormView> {
         'profilePic': profileUrl,
         'aadharPic': aadharUrl,
         'panPic': panUrl,
-        'isProfileCompleted': true,
+        'isProfileComplete': true,
       });
 
       if (success && mounted) {

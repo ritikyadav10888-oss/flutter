@@ -99,7 +99,15 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       await _authService.updateUser(_user!.uid, data);
+      
+      // Re-fetch user to update local state and trigger navigation
+      final updatedUser = await _authService.user.first;
+      if (updatedUser != null) {
+        _user = updatedUser;
+      }
+      
       _isLoading = false;
+      _isInitializing = false;
       notifyListeners();
       return true;
     } catch (e) {

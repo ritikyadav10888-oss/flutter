@@ -247,17 +247,28 @@ class AuthService {
     }
   }
 
-  // Update user data
+  // Update user data with snake_case translation
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
     try {
       final token = await getToken();
+      
+      // Translate camelCase to snake_case for the backend
+      final translatedData = <String, dynamic>{};
+      data.forEach((key, value) {
+        final snakeKey = key.replaceAllMapped(
+          RegExp(r'([A-Z])'),
+          (match) => '_${match.group(0)!.toLowerCase()}',
+        );
+        translatedData[snakeKey] = value;
+      });
+
       final response = await http.patch(
         Uri.parse('$baseUrl/auth/users/$uid'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode(data),
+        body: json.encode(translatedData),
       );
 
       if (response.statusCode != 200) {
