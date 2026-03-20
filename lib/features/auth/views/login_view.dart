@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/one_ui_widgets.dart';
 import '../viewmodels/auth_viewmodel.dart';
-import 'register_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -254,38 +253,8 @@ class _LoginViewState extends State<LoginView> {
 
                 const SizedBox(height: 48),
 
-                // Signup Link
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterView(),
-                        ),
-                      );
-                    },
-                    child: RichText(
-                      text: const TextSpan(
-                        text: "Don't have an account? ",
-                        style: TextStyle(
-                          color: AppTheme.textMuted,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Sign Up',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 1200.ms),
+                // Signup Link Removed
+                const SizedBox(height: 48),
               ],
             ),
           ),
