@@ -16,9 +16,8 @@ router.post('/google', async (req, res) => {
       idToken,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    const payload = ticket.getPayload();
-    const { email, name, sub: googleId, picture } = payload;
-
+    console.log('Google Payload verified for:', email);
+    
     // Check if user exists
     let { data: user, error: fetchError } = await supabase
       .from('users')
@@ -27,11 +26,12 @@ router.post('/google', async (req, res) => {
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Fetch User Error:', fetchError);
+      console.error('Fetch User Error during Google Sign-In:', fetchError);
       throw fetchError;
     }
 
     if (!user) {
+      console.log('Creating new Google user:', email);
       // Create new user
       const { data: newUser, error: insertError } = await supabase
         .from('users')
@@ -47,7 +47,7 @@ router.post('/google', async (req, res) => {
         .single();
       
       if (insertError) {
-        console.error('Insert User Error:', insertError);
+        console.error('Insert User Error during Google Sign-In:', insertError);
         throw insertError;
       }
       user = newUser;
@@ -59,7 +59,7 @@ router.post('/google', async (req, res) => {
       }]);
       
       if (profileError) {
-        console.error('Create Player Profile Error:', profileError);
+        console.error('Create Player Profile Error during Google Sign-In:', profileError);
       }
     }
 
@@ -73,15 +73,15 @@ router.post('/google', async (req, res) => {
       .single();
     
     if (profileFetchError && profileFetchError.code !== 'PGRST116') {
-      console.error('Fetch Profile Error:', profileFetchError);
+      console.error('Fetch Profile Error during Google Sign-In:', profileFetchError);
     }
     profile = userProfile;
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user, profile });
   } catch (err) {
-    console.error('Google Sign-In Error:', err);
-    res.status(401).json({ error: 'Invalid Google token', details: err.message });
+    console.error('Google Sign-In Failure:', err.message);
+    res.status(401).json({ error: 'Google Sign-In failed', details: err.message });
   }
 });
 

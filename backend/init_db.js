@@ -83,7 +83,8 @@ const queries = [
       payment_status TEXT DEFAULT 'UNPAID',
       payment_id TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-  )`
+  )`,
+  "NOTIFY pgrst, 'reload schema'"
 ];
 
 async function init() {
