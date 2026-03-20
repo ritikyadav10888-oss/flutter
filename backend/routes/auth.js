@@ -99,6 +99,7 @@ router.post('/register', async (req, res) => {
       .single();
 
     if (existingUser) {
+      console.log('Registration attempt for existing email:', email);
       return res.status(400).json({ error: 'User already exists' });
     }
 
@@ -160,6 +161,7 @@ router.post('/login', async (req, res) => {
       .single();
 
     if (fetchError || !user) {
+      console.log('Login failed: user not found or fetch error:', email, fetchError ? fetchError.message : 'Not found');
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
