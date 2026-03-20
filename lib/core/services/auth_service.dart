@@ -12,7 +12,6 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Stream of current user (using periodic polling or just current state for now)
-  // Real implementers use WebSockets or just refresh on state changes
   Stream<AppUser?> get user async* {
     final token = await _storage.read(key: 'jwt');
     if (token == null) {
@@ -28,7 +27,6 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // data contains { id, email, ..., profile: { ... } }
         yield AppUser.fromMap(data, data['id']);
       } else {
         yield null;
@@ -61,7 +59,9 @@ class AuthService {
         return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['error'] ?? 'Google Sign-In failed');
+        final msg = error['error'] ?? 'Google Sign-In failed';
+        final details = error['details'] != null ? '\nDetails: ${error['details']}' : '';
+        throw Exception('$msg$details');
       }
     } catch (e) {
       rethrow;
@@ -83,7 +83,9 @@ class AuthService {
         return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['error'] ?? 'Login failed');
+        final msg = error['error'] ?? 'Login failed';
+        final details = error['details'] != null ? '\nDetails: ${error['details']}' : '';
+        throw Exception('$msg$details');
       }
     } catch (e) {
       rethrow;
@@ -114,7 +116,9 @@ class AuthService {
         return AppUser.fromMap({...data['user'], 'profile': data['profile']}, data['user']['id']);
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['error'] ?? 'Registration failed');
+        final msg = error['error'] ?? 'Registration failed';
+        final details = error['details'] != null ? '\nDetails: ${error['details']}' : '';
+        throw Exception('$msg$details');
       }
     } catch (e) {
       rethrow;
@@ -182,6 +186,7 @@ class AuthService {
       rethrow;
     }
   }
+
   Future<void> createOrganizer({
     required String email,
     required String password,
@@ -205,9 +210,6 @@ class AuthService {
     try {
       final token = await getToken();
       
-      // Handle file uploads first if any (simplified for this step)
-      // In a real app, you'd upload files and get URLs back.
-      
       final response = await http.post(
         Uri.parse('$baseUrl/auth/create-organizer'),
         headers: {
@@ -227,9 +229,9 @@ class AuthService {
           'accountNumber': accountNumber,
           'ifscCode': ifscCode,
           'accessDuration': accessDuration,
-          'profilePic': profilePicFileName, // Placeholder URL
-          'aadharPic': aadharFileName, // Placeholder URL
-          'panPic': panFileName, // Placeholder URL
+          'profilePic': profilePicFileName,
+          'aadharPic': aadharFileName,
+          'panPic': panFileName,
         }),
       );
 
