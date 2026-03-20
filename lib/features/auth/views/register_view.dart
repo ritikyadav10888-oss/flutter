@@ -266,29 +266,28 @@ class _RegisterViewState extends State<RegisterView> {
                     backgroundColor: Colors.white,
                     foregroundColor: AppTheme.textDark,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const FaIcon(
-                        FontAwesomeIcons.google,
-                        color: Color(0xFF4285F4),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      const Flexible(
-                        child: Text(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.google,
+                          color: Color(0xFF4285F4),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
                           'Continue with Google',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ).animate().fadeIn(delay: 1100.ms),
 
