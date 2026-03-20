@@ -7,7 +7,7 @@ import '../models/models.dart';
 
 class AuthService {
   // Use your Render URL here
-  static const String baseUrl = 'https://flutter-die1.onrender.com/api';
+  static const String baseUrl = 'http://localhost:3000/api';
   final _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 

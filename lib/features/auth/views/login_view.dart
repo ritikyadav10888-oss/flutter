@@ -195,14 +195,17 @@ class _LoginViewState extends State<LoginView> {
                   children: [
                     const Expanded(child: Divider(thickness: 1.2)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'OR CONTINUE WITH',
-                        style: TextStyle(
-                          color: AppTheme.textMuted.withValues(alpha: 0.8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'OR CONTINUE WITH',
+                          style: TextStyle(
+                            color: AppTheme.textMuted.withValues(alpha: 0.8),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),

@@ -54,6 +54,34 @@ app.get('/', (req, res) => {
   res.send('Force Sports API is running...');
 });
 
+// Supabase Connection Health Check
+app.get('/api/health', async (req, res) => {
+  try {
+    const { supabase } = require('./db');
+    const { data, error } = await supabase.from('users').select('id').limit(1);
+    
+    if (error) {
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Supabase connection failed', 
+        details: error.message 
+      });
+    }
+    
+    res.json({ 
+      status: 'ok', 
+      message: 'Supabase connection verified',
+      database: 'connected'
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Server error during health check', 
+      details: err.message 
+    });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

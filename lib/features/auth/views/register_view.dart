@@ -237,21 +237,23 @@ class _RegisterViewState extends State<RegisterView> {
                   children: [
                     const Expanded(child: Divider(thickness: 1.2)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'OR SIGN UP WITH',
-                        style: TextStyle(
-                          color: AppTheme.textMuted.withValues(alpha: 0.8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'OR SIGN UP WITH',
+                          style: TextStyle(
+                            color: AppTheme.textMuted.withValues(alpha: 0.8),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),
                     const Expanded(child: Divider(thickness: 1.2)),
                   ],
                 ).animate().fadeIn(delay: 1000.ms),
-
                 const SizedBox(height: 32),
 
                 // Google Button
