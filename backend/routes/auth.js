@@ -217,7 +217,7 @@ router.get('/organizers', authMiddleware, async (req, res) => {
   try {
     const { data: organizers, error } = await supabase
       .from('users')
-      .select('id, email, name, roles, active_role, organizer_profiles(*)')
+      .select('*, organizer_profiles!inner(*)')
       .eq('organizer_profiles.owner_id', req.user.id);
 
     if (error) throw error;
@@ -255,16 +255,23 @@ router.post('/create-organizer', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // 1. Create User in Supabase Auth
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name, role: 'organizer' }
+    });
+    
+    if (authError) throw authError;
 
-    // 1. Create User
+    // 2. Create entry in public users table (if not handled by trigger)
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert([
         { 
+          id: authUser.user.id,
           email, 
-          password: hashedPassword, 
           name, 
           roles: ['ORGANIZER'], 
           active_role: 'organizer'
