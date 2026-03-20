@@ -302,8 +302,31 @@ class _RegisterViewState extends State<RegisterView> {
 
                 const SizedBox(height: 48),
 
-                // Login Link Removed
-                const SizedBox(height: 48),
+                // Login Link
+                Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: RichText(
+                      text: const TextSpan(
+                        text: "Already have an account? ",
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign In',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ).animate().fadeIn(delay: 1200.ms),
               ],
             ),
           ),
